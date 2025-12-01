@@ -15,21 +15,18 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     Optional<User> findByUsername(String username);
 
+    boolean existsByEmail(String email);
+
+    boolean existsByUsername(String username);
+
     List<User> findByRole(String role);
 
-    List<User> findByReputationScoreGreaterThan(Integer score);
+    Page<User> findByRole(String role, Pageable pageable);
 
     List<User> findAllByOrderByReputationScoreDesc();
-
-    List<User> findTop10ByOrderByReputationScoreDesc();
-
-    Page<User> findByRole(String role, Pageable pageable);
 
     // Custom @Query z JPQL
     @Query("SELECT u FROM User u WHERE u.reputationScore >= :minScore ORDER BY u.reputationScore DESC")
     List<User> findUsersWithMinReputation(@Param("minScore") Integer minScore);
 
-    boolean existsByEmail(String email);
-
-    boolean existsByUsername(String username);
 }
