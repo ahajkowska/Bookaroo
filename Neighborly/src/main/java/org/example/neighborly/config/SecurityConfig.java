@@ -22,7 +22,7 @@ public class SecurityConfig {
                         .frameOptions(frame -> frame.sameOrigin()) // Pozwól na frame'y z tego samego źródła
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/h2-console/**").permitAll() // Zezwól na dostęp do H2 Console
+                        .requestMatchers("/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll() // Zezwól na dostęp do H2 Console
                         .anyRequest().authenticated()
                 );
 

@@ -147,6 +147,15 @@ public class UserService {
         return convertToDTO(updatedUser);
     }
 
+    // GET TOP USERS BY REPUTATION
+    @Transactional(readOnly = true)
+    public List<UserDTO> getTopUsers(int limit) {
+        return userRepository.findAllByOrderByReputationScoreDesc().stream()
+                .limit(limit)
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
     // f. pomocnicza --- Konwersja Entity -> DTO
     private UserDTO convertToDTO(User user) {
         return new UserDTO(
