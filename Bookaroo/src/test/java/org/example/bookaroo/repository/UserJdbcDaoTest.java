@@ -283,6 +283,7 @@ class UserJdbcDaoTest {
 
     private User createUser(String username, String email, String role) {
         User user = new User();
+        user.setId(UUID.randomUUID());
         user.setUsername(username);
         user.setEmail(email);
         user.setPassword("encodedPassword123");

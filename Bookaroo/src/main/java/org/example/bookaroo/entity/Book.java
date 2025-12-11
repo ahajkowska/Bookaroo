@@ -28,16 +28,16 @@ public class Book {
     @Column(name="cover_image_url")
     private String coverImageUrl;
 
-    @Column(name="publicationYear")
+    @Column(name="publication_year")
     private Integer publicationYear;
 
     @Column(name="language")
     private String language;
 
-    @Column(name="averageRating")
+    @Column(name="average_rating")
     private Double averageRating;
 
-    @Column(name="totalReviews")
+    @Column(name="total_reviews")
     private Integer totalReviews;
 
     // Relacje
