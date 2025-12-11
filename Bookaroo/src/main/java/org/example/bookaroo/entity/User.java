@@ -1,6 +1,7 @@
 package org.example.bookaroo.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,30 +20,26 @@ public class User {
     @Column(name="username", unique = true, nullable=false)
     private String username;
 
-    @Column(name="first_name")
-    private String firstName;
-
-    @Column(name="last_name")
-    private String lastName;
-
     @Column(name="email", unique = true,  nullable=false)
     private String email;
 
     @Column(name="password", nullable=false)
     private String password;
 
+    @Column(name="avatar")
+    private String avatar;
+
+    @Column(name="bio")
+    private String bio;
+
     @Column(name="role", nullable=false)
     private String role;
 
-    @Column(name="reputation_score")
-    private Integer reputationScore = 0;
+    @CreationTimestamp
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     // Relacje
-    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
-    private List<ServiceOffer> offeredServices;
-
-    @OneToMany(mappedBy = "requester", cascade = CascadeType.ALL)
-    private List<ServiceRequest> requestedServices;
 
     @OneToMany(mappedBy = "reviewer", cascade = CascadeType.ALL)
     private List<Review> givenReviews;

@@ -11,14 +11,14 @@ import org.springframework.context.annotation.Configuration;
 public class OpenApiConfig {
 
     @Bean
-    public OpenAPI neighborlyOpenAPI() {
+    public OpenAPI bokarooOpenAPI() {
         return new OpenAPI()
                 .components(new Components())
                 .info(new Info()
-                        .title("Neighborly API")
+                        .title("Bookaroo API")
                         .description("API do zarządzania platformą wymiany usług lokalnych")
                         .version("v1")
-                        .contact(new Contact().name("Neighborly").email("neighobrly@gmail.com"))
+                        .contact(new Contact().name("Bookaroo").email("neighobrly@gmail.com"))
                 );
     }
 }
