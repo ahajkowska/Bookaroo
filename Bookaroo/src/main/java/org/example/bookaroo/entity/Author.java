@@ -9,19 +9,22 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@Table(name = "categories")
+@Table(name="authors")
 @Entity
-public class Category {
+public class Author {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(unique = true, nullable = false)
+    @Column(name="name", nullable=false)
     private String name;
 
-    @Column(columnDefinition = "TEXT")
-    private String description;
+    @Column(name="surname", nullable=false)
+    private String surname;
 
-    @OneToMany(mappedBy = "category")
-    private List<ServiceOffer> serviceOffers;
+    // Relacje
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
+    private List<Book> books;
+
 }
+

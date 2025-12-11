@@ -1,6 +1,9 @@
 package org.example.bookaroo.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
@@ -17,23 +20,14 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne
-    @JoinColumn(name = "reviewer_id", nullable = false)
-    private User reviewer;
-
-    @ManyToOne
-    @JoinColumn(name = "reviewed_user_id", nullable = false)
-    private User reviewedUser;
-
-    @ManyToOne
-    @JoinColumn(name = "service_request_id")
-    private ServiceRequest serviceRequest;
-
+    @NotNull(message = "Rating jest wymagany")
+    @Min(value = 1, message = "Rating musi być co najmniej 1")
+    @Max(value = 10, message = "Rating nie może być większy niż 10")
     @Column(nullable = false)
-    private Integer rating; // 1-5
+    private Integer rating;
 
     @Column(columnDefinition = "TEXT")
-    private String comment;
+    private String reviewText;
 
     @CreationTimestamp
     @Column(name = "created_at")
@@ -43,4 +37,13 @@ public class Review {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
     }
+
+    @ManyToOne
+    @JoinColumn(name = "book_id", nullable = false)
+    private Book book;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User reviewer;
+
 }

@@ -30,9 +30,8 @@ public class UserJdbcDao {
             user.setEmail(rs.getString("email"));
             user.setPassword(rs.getString("password"));
             user.setRole(rs.getString("role"));
-            user.setFirstName(rs.getString("first_name"));
-            user.setLastName(rs.getString("last_name"));
-            user.setReputationScore(rs.getInt("reputation_score"));
+            user.setAvatar(rs.getString("avatar"));
+            user.setBio(rs.getString("bio"));
             return user;
         }
     };
@@ -45,29 +44,11 @@ public class UserJdbcDao {
 
     // SELECT z param
     public List<User> findUsersByRole(String role) {
-        String sql = "SELECT * FROM users WHERE role = ? ORDER BY reputation_score DESC";
+        String sql = "SELECT * FROM users WHERE role = ? ORDER BY username ASC";
         return jdbcTemplate.query(sql, userRowMapper, role);
     }
 
-    // SELECT - ranking użytkowników (top x)
-    public List<User> getTopUsersByReputation(int limit) {
-        String sql = "SELECT * FROM users ORDER BY reputation_score DESC LIMIT ?";
-        return jdbcTemplate.query(sql, userRowMapper, limit);
-    }
 
-    // SELECT - statystyki
-    public Map<String, Object> getUserStatistics(UUID userId) {
-        String sql = """
-            SELECT 
-                COUNT(*) as total_count,
-                AVG(reputation_score) as avg_reputation,
-                MAX(reputation_score) as max_reputation,
-                MIN(reputation_score) as min_reputation
-            FROM users
-            WHERE id = ?
-        """;
-        return jdbcTemplate.queryForMap(sql, userId. toString());
-    }
 
     // SELECT - agregacja (count)
     public Integer getTotalUserCount() {
@@ -78,40 +59,23 @@ public class UserJdbcDao {
     // INSERT - dodaj użytkownika
     public int insertUser(User user) {
         String sql = """
-            INSERT INTO users (id, username, email, password, role, first_name, last_name, reputation_score)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO users (id, username, email, password, role, avatar, bio)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         """;
         return jdbcTemplate.update(sql,
                 user.getId().toString(),
                 user.getUsername(),
                 user.getEmail(),
-                user. getPassword(),
+                user.getPassword(),
                 user.getRole(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getReputationScore()
+                user.getAvatar(),
+                user.getBio()
         );
-    }
-
-    // UPDATE - aktualizuj reputację
-    public int updateUserReputation(UUID userId, Integer newReputation) {
-        String sql = "UPDATE users SET reputation_score = ?  WHERE id = ?";
-        return jdbcTemplate.update(sql, newReputation, userId. toString());
     }
 
     // DELETE - usuń użytkownika
     public int deleteUser(UUID userId) {
         String sql = "DELETE FROM users WHERE id = ?";
         return jdbcTemplate.update(sql, userId.toString());
-    }
-
-    // Złożone zapytanie - użytkownicy z filtrem
-    public List<User> findUsersWithFilters(String role, Integer minReputation) {
-        String sql = """
-            SELECT * FROM users 
-            WHERE role = ? AND reputation_score >= ?
-            ORDER BY reputation_score DESC
-        """;
-        return jdbcTemplate.query(sql, userRowMapper, role, minReputation);
     }
 }

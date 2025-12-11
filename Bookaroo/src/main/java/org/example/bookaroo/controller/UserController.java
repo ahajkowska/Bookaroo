@@ -115,20 +115,27 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{id}/reputation")
-    @Operation(summary = "Zaktualizuj reputację użytkownika", description = "Zwiększa lub zmniejsza reputację użytkownika")
-    public ResponseEntity<UserDTO> updateUserReputation(
-            @PathVariable UUID id,
-            @RequestParam Integer change
+    @GetMapping("/newest")
+    @Operation(summary = "Pobierz najnowszych użytkowników", description = "Zwraca listę ostatnio zarejestrowanych czytelników")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lista najnowszych użytkowników",
+                    content = @Content(mediaType = "application/json"))
+    })
+    public ResponseEntity<List<UserDTO>> getNewestUsers(
+            @Parameter(description = "Liczba użytkowników do pobrania") @RequestParam(defaultValue = "10") int limit
     ) {
-        UserDTO updated = userService.updateUserReputation(id, change);
-        return ResponseEntity.ok(updated);
+        List<UserDTO> newest = userService.getNewestUsers(limit);
+        return ResponseEntity.ok(newest);
     }
 
-    @GetMapping("/top")
-    @Operation(summary = "Pobierz top użytkowników", description = "Zwraca ranking użytkowników według reputacji")
-    public ResponseEntity<List<UserDTO>> getTopUsers(@RequestParam(defaultValue = "10") int limit) {
-        List<UserDTO> top = userService.getTopUsers(limit);
-        return ResponseEntity.ok(top);
+    @GetMapping("/alphabetical")
+    @Operation(summary = "Pobierz użytkowników alfabetycznie", description = "Zwraca listę użytkowników posortowaną według username")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lista użytkowników alfabetycznie",
+                    content = @Content(mediaType = "application/json"))
+    })
+    public ResponseEntity<List<UserDTO>> getUsersAlphabetically() {
+        List<UserDTO> users = userService.getUsersAlphabetically();
+        return ResponseEntity.ok(users);
     }
 }

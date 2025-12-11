@@ -23,10 +23,13 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     Page<User> findByRole(String role, Pageable pageable);
 
-    List<User> findAllByOrderByReputationScoreDesc();
+    // Metody przydatne dla Book Lovers Community
+    List<User> findAllByOrderByUsernameAsc();
+    
+    List<User> findAllByOrderByCreatedAtDesc();
 
-    // Custom @Query z JPQL
-    @Query("SELECT u FROM User u WHERE u.reputationScore >= :minScore ORDER BY u.reputationScore DESC")
-    List<User> findUsersWithMinReputation(@Param("minScore") Integer minScore);
+    // Custom @Query - znajdź użytkowników według daty rejestracji
+    @Query("SELECT u FROM User u WHERE u.createdAt >= :date ORDER BY u.createdAt DESC")
+    List<User> findUsersRegisteredAfter(@Param("date") java.time.LocalDateTime date);
 
 }

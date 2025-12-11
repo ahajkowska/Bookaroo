@@ -28,9 +28,9 @@ public class CreateUserDTO {
     @Pattern(regexp = "USER|ADMIN", message = "Rola musi być USER lub ADMIN")
     private String role;
 
-    @Size(max = 50, message = "Imię może mieć maksymalnie 50 znaków")
-    private String firstName;
+    @Size(max = 500, message = "Avatar URL może mieć maksymalnie 500 znaków")
+    private String avatar;
 
-    @Size(max = 50, message = "Nazwisko może mieć maksymalnie 50 znaków")
-    private String lastName;
+    @Size(max = 500, message = "Bio może mieć maksymalnie 500 znaków")
+    private String bio;
 }

@@ -19,10 +19,10 @@ public class UpdateUserDTO {
     @Size(min = 8, message = "Hasło musi mieć minimum 8 znaków")
     private String password;
 
-    @Size(max = 50, message = "Imię może mieć maksymalnie 50 znaków")
-    private String firstName;
+    @Size(max = 500, message = "URL avatara może mieć maksymalnie 500 znaków")
+    private String avatar;
 
-    @Size(max = 50, message = "Nazwisko może mieć maksymalnie 50 znaków")
-    private String lastName;
+    @Size(max = 1000, message = "Bio może mieć maksymalnie 1000 znaków")
+    private String bio;
 
 }

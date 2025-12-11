@@ -85,12 +85,11 @@ public class UserService {
         user.setUsername(createUserDTO.getUsername());
         user.setEmail(createUserDTO.getEmail());
         user.setPassword(passwordEncoder.encode(createUserDTO.getPassword())); // Zaszyfruj hasło
-        user.setRole(createUserDTO. getRole());
-        user.setFirstName(createUserDTO.getFirstName());
-        user.setLastName(createUserDTO.getLastName());
-        user.setReputationScore(0); // Nowy użytkownik zaczyna z 0
+        user.setRole(createUserDTO.getRole());
+        user.setAvatar(createUserDTO.getAvatar());
+        user.setBio(createUserDTO.getBio());
 
-        User savedUser = userRepository. save(user);
+        User savedUser = userRepository.save(user);
         return convertToDTO(savedUser);
     }
 
@@ -113,15 +112,15 @@ public class UserService {
         }
 
         if (updateUserDTO.getPassword() != null) {
-            user.setPassword(passwordEncoder. encode(updateUserDTO.getPassword()));
+            user.setPassword(passwordEncoder.encode(updateUserDTO.getPassword()));
         }
 
-        if (updateUserDTO.getFirstName() != null) {
-            user. setFirstName(updateUserDTO. getFirstName());
+        if (updateUserDTO.getAvatar() != null) {
+            user.setAvatar(updateUserDTO.getAvatar());
         }
 
-        if (updateUserDTO.getLastName() != null) {
-            user.setLastName(updateUserDTO.getLastName());
+        if (updateUserDTO.getBio() != null) {
+            user.setBio(updateUserDTO.getBio());
         }
 
         User updatedUser = userRepository.save(user);
@@ -136,22 +135,19 @@ public class UserService {
         userRepository.delete(user);
     }
 
-    // UPDATE REPUTATION
-    @Transactional
-    public UserDTO updateUserReputation(UUID id, Integer reputationChange) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-
-        user.setReputationScore(user.getReputationScore() + reputationChange);
-        User updatedUser = userRepository.save(user);
-        return convertToDTO(updatedUser);
+    // GET USERS BY REGISTRATION DATE (newest first)
+    @Transactional(readOnly = true)
+    public List<UserDTO> getNewestUsers(int limit) {
+        return userRepository.findAllByOrderByCreatedAtDesc().stream()
+                .limit(limit)
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
-    // GET TOP USERS BY REPUTATION
+    // GET USERS BY USERNAME (alphabetically)
     @Transactional(readOnly = true)
-    public List<UserDTO> getTopUsers(int limit) {
-        return userRepository.findAllByOrderByReputationScoreDesc().stream()
-                .limit(limit)
+    public List<UserDTO> getUsersAlphabetically() {
+        return userRepository.findAllByOrderByUsernameAsc().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
@@ -160,12 +156,12 @@ public class UserService {
     private UserDTO convertToDTO(User user) {
         return new UserDTO(
                 user.getId(),
-                user. getUsername(),
+                user.getUsername(),
                 user.getEmail(),
-                user.getFirstName(),
-                user.getLastName(),
+                user.getAvatar(),
+                user.getBio(),
                 user.getRole(),
-                user.getReputationScore()
+                user.getCreatedAt()
         );
     }
 }

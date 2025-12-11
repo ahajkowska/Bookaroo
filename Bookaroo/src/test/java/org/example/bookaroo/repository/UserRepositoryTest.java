@@ -36,7 +36,7 @@ public class UserRepositoryTest {
     @Tag("crud")
     @Tag("create")
     void shouldGenerateId_whenSavingNewUser() {
-        User newUser = createUser("new_user", "newuser@example.com", "USER", 0);
+        User newUser = createUser("new_user", "newuser@example.com", "USER");
 
         User savedUser = userRepository.save(newUser);
         entityManager.flush();
@@ -48,7 +48,7 @@ public class UserRepositoryTest {
     @Tag("crud")
     @Tag("create")
     void shouldSaveUsername_whenSavingNewUser() {
-        User newUser = createUser("new_user", "newuser@example.com", "USER", 0);
+        User newUser = createUser("new_user", "newuser@example.com", "USER");
 
         User savedUser = userRepository.save(newUser);
         entityManager.flush();
@@ -60,7 +60,7 @@ public class UserRepositoryTest {
     @Tag("crud")
     @Tag("create")
     void shouldSaveEmail_whenSavingNewUser() {
-        User newUser = createUser("new_user", "newuser@example.com", "USER", 0);
+        User newUser = createUser("new_user", "newuser@example.com", "USER");
 
         User savedUser = userRepository.save(newUser);
         entityManager.flush();
@@ -72,7 +72,7 @@ public class UserRepositoryTest {
     @Tag("crud")
     @Tag("read")
     void shouldFindUserById_whenUserExists() {
-        User user = createUser("adam_malysz", "adam@gmail.com", "USER", 100);
+        User user = createUser("adam_malysz", "adam@gmail.com", "USER");
         User savedUser = userRepository.save(user);
         entityManager.flush();
         UUID userId = savedUser.getId();
@@ -86,7 +86,7 @@ public class UserRepositoryTest {
     @Tag("crud")
     @Tag("read")
     void shouldReturnCorrectUsername_whenFindingById() {
-        User user = createUser("adam_malysz", "adam@gmail.com", "USER", 100);
+        User user = createUser("adam_malysz", "adam@gmail.com", "USER");
         User savedUser = userRepository.save(user);
         entityManager.flush();
         UUID userId = savedUser.getId();
@@ -111,9 +111,9 @@ public class UserRepositoryTest {
     @Tag("crud")
     @Tag("read")
     void shouldFindAllUsers_whenMultipleUsersExist() {
-        userRepository.save(createUser("adam_malysz", "adam@gmail.com", "USER", 100));
-        userRepository.save(createUser("magda_gessler", "magda@gmail.com", "ADMIN", 250));
-        userRepository.save(createUser("justin_bieber", "justin@onet.com.pl", "USER", 50));
+        userRepository.save(createUser("adam_malysz", "adam@gmail.com", "USER"));
+        userRepository.save(createUser("magda_gessler", "magda@gmail.com", "ADMIN"));
+        userRepository.save(createUser("justin_bieber", "justin@onet.com.pl", "USER"));
         entityManager.flush();
 
         List<User> allUsers = userRepository.findAll();
@@ -124,25 +124,8 @@ public class UserRepositoryTest {
     @Test
     @Tag("crud")
     @Tag("update")
-    void shouldUpdateReputationScore_whenUserExists() {
-        User user = createUser("adam_malysz", "adam@gmail.com", "USER", 100);
-        User savedUser = userRepository.save(user);
-        entityManager.flush();
-        UUID userId = savedUser. getId();
-
-        savedUser.setReputationScore(500);
-        userRepository.save(savedUser);
-        entityManager.flush();
-
-        User foundUser = userRepository.findById(userId).orElseThrow();
-        assertThat(foundUser.getReputationScore()).isEqualTo(500);
-    }
-
-    @Test
-    @Tag("crud")
-    @Tag("update")
     void shouldUpdateRole_whenUserExists() {
-        User user = createUser("adam_malysz", "adam@gmail.com", "USER", 100);
+        User user = createUser("adam_malysz", "adam@gmail.com", "USER");
         User savedUser = userRepository.save(user);
         entityManager.flush();
 
@@ -158,7 +141,7 @@ public class UserRepositoryTest {
     @Tag("crud")
     @Tag("delete")
     void shouldDeleteUser_whenUserExists() {
-        User user = createUser("adam_malysz", "adam@gmail.com", "USER", 100);
+        User user = createUser("adam_malysz", "adam@gmail.com", "USER");
         User savedUser = userRepository.save(user);
         entityManager.flush();
         UUID userId = savedUser.getId();
@@ -174,8 +157,8 @@ public class UserRepositoryTest {
     @Tag("crud")
     @Tag("delete")
     void shouldReduceCount_whenDeletingUser() {
-        User user1 = userRepository.save(createUser("adam_malysz", "adam@gmail.com", "USER", 100));
-        User user2 = userRepository.save(createUser("magda_gessler", "magda@gmail.com", "ADMIN", 250));
+        User user1 = userRepository.save(createUser("adam_malysz", "adam@gmail.com", "USER"));
+        User user2 = userRepository.save(createUser("magda_gessler", "magda@gmail.com", "ADMIN"));
         entityManager.flush();
         long countBefore = userRepository.count();
 
@@ -188,7 +171,7 @@ public class UserRepositoryTest {
     @Test
     @Tag("custom-query")
     void shouldFindUserByEmail_whenEmailExists() {
-        User user = createUser("adam_malysz", "adam@gmail.com", "USER", 100);
+        User user = createUser("adam_malysz", "adam@gmail.com", "USER");
         userRepository.save(user);
         entityManager.flush();
 
@@ -200,7 +183,7 @@ public class UserRepositoryTest {
     @Test
     @Tag("custom-query")
     void shouldReturnCorrectUser_whenFindingByEmail() {
-        User user = createUser("adam_malysz", "adam@gmail.com", "USER", 100);
+        User user = createUser("adam_malysz", "adam@gmail.com", "USER");
         userRepository.save(user);
         entityManager.flush();
 
@@ -212,7 +195,7 @@ public class UserRepositoryTest {
     @Test
     @Tag("custom-query")
     void shouldReturnEmpty_whenEmailDoesNotExist() {
-        User user = createUser("adam_malysz", "adam@gmail.com", "USER", 100);
+        User user = createUser("adam_malysz", "adam@gmail.com", "USER");
         userRepository.save(user);
         entityManager.flush();
 
@@ -224,7 +207,7 @@ public class UserRepositoryTest {
     @Test
     @Tag("custom-query")
     void shouldFindUserByUsername_whenUsernameExists() {
-        User user = createUser("adam_malysz", "adam@gmail.com", "USER", 150);
+        User user = createUser("adam_malysz", "adam@gmail.com", "USER");
         userRepository.save(user);
         entityManager.flush();
 
@@ -236,7 +219,7 @@ public class UserRepositoryTest {
     @Test
     @Tag("custom-query")
     void shouldReturnTrue_whenEmailExists() {
-        User user = createUser("adam_malysz", "adam@gmail.com", "USER", 150);
+        User user = createUser("adam_malysz", "adam@gmail.com", "USER");
         userRepository.save(user);
         entityManager.flush();
 
@@ -248,7 +231,7 @@ public class UserRepositoryTest {
     @Test
     @Tag("custom-query")
     void shouldReturnFalse_whenEmailDoesNotExist() {
-        User user = createUser("adam_malysz", "adam@gmail.com", "USER", 150);
+        User user = createUser("adam_malysz", "adam@gmail.com", "USER");
         userRepository.save(user);
         entityManager.flush();
 
@@ -260,7 +243,7 @@ public class UserRepositoryTest {
     @Test
     @Tag("custom-query")
     void shouldReturnTrue_whenUsernameExists() {
-        User user = createUser("magda_gessler", "magda@gmail.com", "USER", 150);
+        User user = createUser("magda_gessler", "magda@gmail.com", "USER");
         userRepository.save(user);
         entityManager.flush();
 
@@ -272,7 +255,7 @@ public class UserRepositoryTest {
     @Test
     @Tag("custom-query")
     void shouldReturnFalse_whenUsernameDoesNotExist() {
-        User user = createUser("magda_gessler", "magda@gmail.com", "ADMIN", 200);
+        User user = createUser("magda_gessler", "magda@gmail.com", "ADMIN");
         userRepository.save(user);
         entityManager.flush();
 
@@ -284,9 +267,9 @@ public class UserRepositoryTest {
     @Test
     @Tag("custom-query")
     void shouldFindUsersByRole_whenRoleMatches() {
-        userRepository.save(createUser("adam_malysz", "adam@gmailcom", "USER", 100));
-        userRepository.save(createUser("magda_gessler", "magda@gmail.com", "ADMIN", 250));
-        userRepository.save(createUser("justin_bieber", "justin@onet.com.pl", "USER", 50));
+        userRepository.save(createUser("adam_malysz", "adam@gmailcom", "USER"));
+        userRepository.save(createUser("magda_gessler", "magda@gmail.com", "ADMIN"));
+        userRepository.save(createUser("justin_bieber", "justin@onet.com.pl", "USER"));
         entityManager.flush();
 
         List<User> users = userRepository.findByRole("USER");
@@ -297,9 +280,9 @@ public class UserRepositoryTest {
     @Test
     @Tag("custom-query")
     void shouldReturnOnlyMatchingRole_whenFindingByRole() {
-        userRepository.save(createUser("adam_malysz", "adam@gmailcom", "USER", 100));
-        userRepository.save(createUser("magda_gessler", "magda@gmail.com", "ADMIN", 250));
-        userRepository.save(createUser("justin_bieber", "justin@onet.com.pl", "USER", 50));
+        userRepository.save(createUser("adam_malysz", "adam@gmailcom", "USER"));
+        userRepository.save(createUser("magda_gessler", "magda@gmail.com", "ADMIN"));
+        userRepository.save(createUser("justin_bieber", "justin@onet.com.pl", "USER"));
         entityManager.flush();
 
         List<User> users = userRepository.findByRole("USER");
@@ -310,7 +293,7 @@ public class UserRepositoryTest {
     @Test
     @Tag("custom-query")
     void shouldReturnEmptyList_whenRoleNotFound() {
-        User user = createUser("adam_malysz", "adam@gmail.com", "USER", 150);
+        User user = createUser("adam_malysz", "adam@gmail.com", "USER");
         userRepository.save(user);
         entityManager.flush();
 
@@ -324,7 +307,7 @@ public class UserRepositoryTest {
     @Tag("pagination")
     void shouldReturnPagedResults_whenFindingByRoleWithPageable() {
         for (int i = 1; i <= 15; i++) {
-            userRepository.save(createUser("user" + i, "user" + i + "@gmail.com", "USER", i * 10));
+            userRepository.save(createUser("user" + i, "user" + i + "@gmail.com", "USER"));
         }
         entityManager.flush();
         Pageable pageable = PageRequest.of(0, 10);
@@ -339,7 +322,7 @@ public class UserRepositoryTest {
     @Tag("pagination")
     void shouldReturnCorrectTotalElements_whenFindingByRoleWithPageable() {
         for (int i = 1; i <= 15; i++) {
-            userRepository.save(createUser("user" + i, "user" + i + "@gmail.com", "USER", i * 10));
+            userRepository.save(createUser("user" + i, "user" + i + "@gmail.com", "USER"));
         }
         entityManager.flush();
         Pageable pageable = PageRequest.of(0, 10);
@@ -354,7 +337,7 @@ public class UserRepositoryTest {
     @Tag("pagination")
     void shouldReturnSecondPage_whenRequestingPageOne() {
         for (int i = 1; i <= 15; i++) {
-            userRepository.save(createUser("user" + i, "user" + i + "@gmail.com", "USER", i * 10));
+            userRepository.save(createUser("user" + i, "user" + i + "@gmail.com", "USER"));
         }
         entityManager.flush();
         Pageable pageable = PageRequest.of(1, 10); // druga strona
@@ -364,124 +347,13 @@ public class UserRepositoryTest {
         assertThat(usersPage.getContent()).hasSize(5); // pozostałe elementy
     }
 
-    @Test
-    @Tag("custom-query")
-    void shouldOrderByReputationDesc_whenFindingAll() {
-        userRepository.save(createUser("adam_malysz", "adam@gmailcom", "USER", 100));
-        userRepository.save(createUser("magda_gessler", "magda@gmail.com", "ADMIN", 250));
-        userRepository.save(createUser("justin_bieber", "justin@onet.com.pl", "USER", 50));
-        entityManager.flush();
-
-        List<User> users = userRepository.findAllByOrderByReputationScoreDesc();
-
-        assertThat(users.get(0).getReputationScore()).isEqualTo(250);
-    }
-
-    @Test
-    @Tag("custom-query")
-    void shouldReturnAllUsers_whenFindingOrderedByReputation() {
-        userRepository.save(createUser("adam_malysz", "adam@gmailcom", "USER", 100));
-        userRepository.save(createUser("magda_gessler", "magda@gmail.com", "ADMIN", 250));
-        userRepository.save(createUser("justin_bieber", "justin@onet.com.pl", "USER", 50));
-        entityManager.flush();
-
-        List<User> users = userRepository. findAllByOrderByReputationScoreDesc();
-
-        assertThat(users). hasSize(3);
-    }
-
-    @Test
-    @Tag("custom-query")
-    void shouldMaintainDescendingOrder_whenFindingByReputation() {
-        userRepository.save(createUser("adam_malysz", "adam@gmailcom", "USER", 100));
-        userRepository.save(createUser("magda_gessler", "magda@gmail.com", "ADMIN", 250));
-        userRepository.save(createUser("justin_bieber", "justin@onet.com.pl", "USER", 50));
-        entityManager.flush();
-
-        List<User> users = userRepository. findAllByOrderByReputationScoreDesc();
-
-        assertThat(users)
-                .extracting(User::getReputationScore)
-                .containsExactly(250, 100, 50);
-    }
-
-    @Test
-    @Tag("custom-query")
-    @Tag("jpql")
-    void shouldFindUsersWithMinReputation_whenUsingJpqlQuery() {
-        userRepository.save(createUser("adam_malysz", "adam@gmailcom", "USER", 100));
-        userRepository.save(createUser("magda_gessler", "magda@gmail.com", "ADMIN", 250));
-        userRepository.save(createUser("justin_bieber", "justin@onet.com.pl", "USER", 50));
-        entityManager.flush();
-
-        List<User> users = userRepository. findUsersWithMinReputation(100);
-
-        assertThat(users).hasSize(2);
-    }
-
-    @Test
-    @Tag("custom-query")
-    @Tag("jpql")
-    void shouldOrderByReputationDesc_whenUsingJpqlQuery() {
-        userRepository.save(createUser("adam_malysz", "adam@gmailcom", "USER", 100));
-        userRepository.save(createUser("magda_gessler", "magda@gmail.com", "ADMIN", 250));
-        userRepository.save(createUser("justin_bieber", "justin@onet.com.pl", "USER", 50));
-        entityManager.flush();
-
-        List<User> users = userRepository.findUsersWithMinReputation(100);
-
-        assertThat(users. get(0).getReputationScore()).isEqualTo(250);
-    }
-
-    @Test
-    @Tag("custom-query")
-    @Tag("jpql")
-    void shouldIncludeUsersWithEqualReputation_whenUsingJpqlQuery() {
-        userRepository.save(createUser("adam_malysz", "adam@gmailcom", "USER", 100));
-        userRepository.save(createUser("magda_gessler", "magda@gmail.com", "ADMIN", 250));
-        userRepository.save(createUser("justin_bieber", "justin@onet.com.pl", "USER", 50));
-        entityManager.flush();
-
-        List<User> users = userRepository.findUsersWithMinReputation(100);
-
-        assertThat(users).anyMatch(user -> user.getReputationScore(). equals(100));
-    }
-
-    @Test
-    @Tag("custom-query")
-    @Tag("jpql")
-    void shouldReturnEmptyList_whenNoUsersMatchMinReputation() {
-        userRepository.save(createUser("adam_malysz", "adam@gmailcom", "USER", 100));
-        userRepository.save(createUser("magda_gessler", "magda@gmail.com", "ADMIN", 250));
-        userRepository.save(createUser("justin_bieber", "justin@onet.com.pl", "USER", 50));
-        entityManager.flush();
-
-        List<User> users = userRepository.findUsersWithMinReputation(500);
-
-        assertThat(users).isEmpty();
-    }
-
-    @Test
-    @Tag("edge-case")
-    void shouldHandleZeroReputation() {
-        User zeroRepUser = createUser("zero_rep", "zero@test.com", "USER", 0);
-
-        User savedUser = userRepository.save(zeroRepUser);
-        entityManager.flush();
-
-        assertThat(savedUser. getReputationScore()).isEqualTo(0);
-    }
-
     // pomocnicze tworzenie usera
-    private User createUser(String username, String email, String role, Integer reputation) {
+    private User createUser(String username, String email, String role) {
         User user = new User();
         user.setUsername(username);
         user.setEmail(email);
-        user. setPassword("encodedPassword123");
+        user.setPassword("encodedPassword123");
         user.setRole(role);
-        user.setFirstName("Imie");
-        user.setLastName("Nazwisko");
-        user.setReputationScore(reputation);
         return user;
     }
 }
