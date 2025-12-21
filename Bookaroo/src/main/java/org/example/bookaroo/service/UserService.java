@@ -205,6 +205,24 @@ public class UserService {
         bookshelfRepository.save(shelf);
     }
 
+    @Transactional
+    public void createCustomShelf(UUID userId, String shelfName) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        Bookshelf shelf = new Bookshelf();
+        shelf.setName(shelfName);
+        shelf.setIsDefault(false);
+        shelf.setUser(user);
+
+        bookshelfRepository.save(shelf);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Bookshelf> getUserShelves(UUID userId) {
+        return bookshelfRepository.findAllByUserId(userId);
+    }
+
     // f. pomocnicza --- Konwersja Entity -> DTO
     private UserDTO convertToDTO(User user) {
         return new UserDTO(
