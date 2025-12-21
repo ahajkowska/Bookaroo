@@ -138,4 +138,12 @@ public class UserController {
         List<UserDTO> users = userService.getUsersAlphabetically();
         return ResponseEntity.ok(users);
     }
+
+    @PostMapping("/{userId}/shelves/{shelfId}/books/{bookId}")
+    public ResponseEntity<Void> addBookToShelf(@PathVariable UUID userId,
+                                               @PathVariable UUID shelfId,
+                                               @PathVariable UUID bookId) {
+        userService.addBookToShelf(userId, shelfId, bookId);
+        return ResponseEntity.ok().build();
+    }
 }

@@ -3,9 +3,13 @@ package org.example.bookaroo.service;
 import org.example.bookaroo.dto.CreateUserDTO;
 import org.example.bookaroo.dto. UpdateUserDTO;
 import org. example.bookaroo.dto.UserDTO;
+import org.example.bookaroo.entity.Book;
+import org.example.bookaroo.entity.Bookshelf;
 import org. example.bookaroo.entity.User;
 import org.example.bookaroo.exception.ResourceNotFoundException;
 import org.example.bookaroo. exception.UserAlreadyExistsException;
+import org.example.bookaroo.repository.BookRepository;
+import org.example.bookaroo.repository.BookshelfRepository;
 import org.example.bookaroo.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain. Pageable;
@@ -13,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java. util.List;
 import java. util.UUID;
 import java.util.stream.Collectors;
@@ -22,10 +27,14 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final BookRepository bookRepository;
+    private final BookshelfRepository bookshelfRepository;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, BookRepository bookRepository, BookshelfRepository bookshelfRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.bookRepository = bookRepository;
+        this.bookshelfRepository = bookshelfRepository;
     }
 
     // GET ALL - z paginacją
@@ -88,6 +97,14 @@ public class UserService {
         user.setRole(createUserDTO.getRole());
         user.setAvatar(createUserDTO.getAvatar());
         user.setBio(createUserDTO.getBio());
+
+        // Generowanie domyślnych półek
+        List<Bookshelf> defaultShelves = new ArrayList<>();
+        defaultShelves.add(createShelf(user, "Przeczytane"));
+        defaultShelves.add(createShelf(user, "Chcę przeczytać"));
+        defaultShelves.add(createShelf(user, "Teraz czytam"));
+
+        user.setBookshelves(defaultShelves);
 
         User savedUser = userRepository.save(user);
         return convertToDTO(savedUser);
@@ -152,6 +169,42 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void addBookToShelf(UUID userId, UUID shelfId, UUID bookId) {
+        Bookshelf shelf = bookshelfRepository.findById(shelfId)
+                .orElseThrow(() -> new ResourceNotFoundException("Bookshelf", "id", shelfId));
+
+        if (!shelf.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("Nie masz uprawnień do edycji tej półki");
+        }
+
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new ResourceNotFoundException("Book", "id", bookId));
+
+        if (shelf.getBooks().contains(book)) {
+            throw new IllegalStateException("Ta książka jest już na tej półce");
+        }
+
+        shelf.getBooks().add(book);
+        bookshelfRepository.save(shelf);
+    }
+
+    @Transactional
+    public void removeBookFromShelf(UUID userId, UUID shelfId, UUID bookId) {
+        Bookshelf shelf = bookshelfRepository.findById(shelfId)
+                .orElseThrow(() -> new ResourceNotFoundException("Bookshelf", "id", shelfId));
+
+        if (!shelf.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("Nie masz uprawnień do tej półki");
+        }
+
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new ResourceNotFoundException("Book", "id", bookId));
+
+        shelf.getBooks().remove(book);
+        bookshelfRepository.save(shelf);
+    }
+
     // f. pomocnicza --- Konwersja Entity -> DTO
     private UserDTO convertToDTO(User user) {
         return new UserDTO(
@@ -163,5 +216,13 @@ public class UserService {
                 user.getRole(),
                 user.getCreatedAt()
         );
+    }
+
+    private Bookshelf createShelf(User user, String name) {
+        Bookshelf shelf = new Bookshelf();
+        shelf.setName(name);
+        shelf.setIsDefault(true);
+        shelf.setUser(user);
+        return shelf;
     }
 }
