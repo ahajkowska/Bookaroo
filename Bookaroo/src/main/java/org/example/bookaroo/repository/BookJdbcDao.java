@@ -34,7 +34,6 @@ public class BookJdbcDao {
             book.setLanguage(rs.getString("language"));
             book.setAverageRating(rs.getDouble("average_rating"));
             book.setTotalReviews(rs.getInt("total_reviews"));
-            // Author i Genre nie są mapowane - wymagałyby dodatkowych zapytań lub JOINów
             return book;
         }
     };
