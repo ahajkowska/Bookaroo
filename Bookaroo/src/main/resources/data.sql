@@ -13,15 +13,12 @@ VALUES
     ('660e8400-e29b-41d4-a716-446655440003', 'Science Fiction', 'Fantastyka naukowa'),
     ('660e8400-e29b-41d4-a716-446655440004', 'Literatura klasyczna', 'Klasyka literatury światowej');
 
--- Przykładowi autorzy
-INSERT INTO authors (id, name, surname)
-VALUES
-    ('770e8400-e29b-41d4-a716-446655440000', 'J.K.', 'Rowling'),
-    ('770e8400-e29b-41d4-a716-446655440001', 'Andrzej', 'Sapkowski'),
-    ('770e8400-e29b-41d4-a716-446655440002', 'Agatha', 'Christie');
+-- 1. Autorzy
+INSERT INTO authors (id, name, surname) VALUES
+                                            ('11111111-1111-1111-1111-111111111111', 'J.R.R.', 'Tolkien'),
+                                            ('22222222-2222-2222-2222-222222222222', 'George', 'Orwell');
 
--- Przykładowe książki
-INSERT INTO books (id, title, isbn, description, cover_image_url, publication_year, language, average_rating, total_reviews, author_id, genre_id)
-VALUES
-    ('880e8400-e29b-41d4-a716-446655440000', 'Harry Potter i Kamień Filozoficzny', '978-83-7686-415-4', 'Pierwsza część przygód młodego czarodzieja', 'https://s.lubimyczytac.pl/upload/books/323000/323299/524151-352x500.jpg', 1997, 'polski', 4.5, 0, '770e8400-e29b-41d4-a716-446655440000', '660e8400-e29b-41d4-a716-446655440000'),
-    ('880e8400-e29b-41d4-a716-446655440001', 'Wiedźmin: Ostatnie życzenie', '978-83-7469-052-0', 'Zbiór opowiadań o wiedźminie Geralcie', 'https://s.lubimyczytac.pl/upload/books/4900000/4900233/749061-352x500.jpg', 1993, 'polski', 4.7, 0, '770e8400-e29b-41d4-a716-446655440001', '660e8400-e29b-41d4-a716-446655440000');
+-- Książki
+INSERT INTO books (id, title, isbn, description, publication_year, author_id) VALUES
+                                                                                  ('33333333-3333-3333-3333-333333333333', 'Władca Pierścieni', '978-1234567890', 'Epicka opowieść.', 1954, '11111111-1111-1111-1111-111111111111'),
+                                                                                  ('44444444-4444-4444-4444-444444444444', 'Rok 1984', '978-0987654321', 'Wielki Brat patrzy.', 1949, '22222222-2222-2222-2222-222222222222');
