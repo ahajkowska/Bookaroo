@@ -2,6 +2,8 @@ package org.example.bookaroo.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -16,15 +18,42 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/h2-console/**") // Wyłącz CSRF dla H2
+                        .ignoringRequestMatchers("/h2-console/**")
                 )
                 .headers(headers -> headers
-                        .frameOptions(frame -> frame.sameOrigin()) // Pozwól na frame'y z tego samego źródła
+                        .frameOptions(frame -> frame.sameOrigin())
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll() // Zezwól na dostęp do H2 Console
-                        .anyRequest().authenticated()
-                );
+                        .requestMatchers("/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
+
+                        // thymeleaf
+                        .requestMatchers("/", "/index").permitAll()
+                        .requestMatchers("/register", "/login").permitAll()
+
+                        // publiczne API
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
+
+                        // panel admina
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+
+                        .anyRequest().authenticated() // reszta wymaga zalogowania
+                )
+
+                .formLogin(form -> form
+                    .loginPage("/login")
+                    .defaultSuccessUrl("/", true)
+                    .permitAll()
+                )
+
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/")
+                        .permitAll()
+                )
+
+                // basic auth
+                .httpBasic(Customizer.withDefaults());
 
         return http.build();
     }
@@ -33,29 +62,5 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-//
-//    // Prosty formularz logowania i zabezpieczenie '/admin/**' (dopasuj do potrzeb)
-//    @Bean
-//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//        http
-//                .csrf(csrf -> csrf.disable()) // podczas rozwoju; w prod włącz
-//                .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/css/**", "/js/**", "/images/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-//                        .requestMatchers("/login", "/register", "/").permitAll()
-//                        .requestMatchers("/admin/**").hasRole("ADMIN")
-//                        .anyRequest().authenticated()
-//                )
-//                .formLogin(form -> form
-//                        .loginPage("/login")
-//                        .defaultSuccessUrl("/", true)
-//                        .permitAll()
-//                )
-//                .logout(logout -> logout
-//                        .logoutUrl("/logout")
-//                        .logoutSuccessUrl("/login?logout")
-//                )
-//                .httpBasic(Customizer.withDefaults());
-//
-//        return http.build();
-//    }
+
 }
