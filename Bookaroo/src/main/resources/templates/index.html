@@ -198,7 +198,6 @@
         }
 
         .book-card:hover {
-            transform: translateY(-15px) rotate(-2deg);
             box-shadow: 0 20px 40px rgba(139, 69, 19, 0.3);
             border-color: var(--aussie-red);
         }
@@ -215,7 +214,6 @@
 
         .book-card:hover::before {
             opacity: 0.4;
-            transform: scale(1.2) rotate(10deg);
         }
 
         .card-body {
@@ -252,14 +250,6 @@
             transition: all 0.3s ease;
             width: 100%;
             box-shadow: 0 4px 8px rgba(101, 67, 33, 0.3);
-        }
-
-        .btn-details:hover {
-            transform: scale(1.05);
-            background: linear-gradient(135deg, var(--aussie-red), var(--outback-orange));
-            box-shadow: 0 6px 15px rgba(200, 16, 46, 0.4);
-            color: white;
-            border-color: var(--kangaroo-dark);
         }
 
         .alert-custom h5 {
@@ -346,13 +336,38 @@
                 <div class="card book-card h-100">
                     <div class="card-body">
                         <h5 class="card-title" th:text="${book.title}">Nazwa książki</h5>
-                        <h6 class="card-subtitle mb-3" th:text="${book.author?.firstName + ' ' + book.author?.lastName}">Autor</h6>
+
+                        <h6 class="card-subtitle mb-3 text-muted">
+                <span th:if="${book.author != null}"
+                      th:text="${book.author.name + ' ' + book.author.surname}">Autor</span>
+                            <span th:unless="${book.author != null}">Autor nieznany</span>
+                        </h6>
+
                         <span class="isbn-badge">
-                            ISBN: <span th:text="${book.isbn}">numer ISBN</span>
-                        </span>
+                ISBN: <span th:text="${book.isbn}">numer ISBN</span>
+            </span>
                     </div>
-                    <div class="card-footer">
-                        <button class="btn btn-details">🦘 Zobacz szczegóły</button>
+
+                    <div class="card-footer bg-transparent border-top-0 text-center pb-3">
+
+                        <a href="#" class="btn btn-sm btn-outline-dark rounded-pill w-100 mb-2">Szczegóły</a>
+
+                        <form sec:authorize="isAuthenticated()" th:action="@{/bookshelf/add}" method="post">
+                            <input type="hidden" name="bookId" th:value="${book.id}"/>
+
+                            <div class="input-group input-group-sm">
+                                <select name="shelfName" class="form-select" style="border-radius: 20px 0 0 20px;">
+                                    <option value="Chcę przeczytać">Chcę przeczytać</option>
+                                    <option value="Teraz czytam">Teraz czytam</option>
+                                    <option value="Przeczytane">Przeczytane</option>
+                                </select>
+                                <button class="btn btn-success" type="submit" style="border-radius: 0 20px 20px 0;">+</button>
+                            </div>
+                        </form>
+
+                        <small sec:authorize="!isAuthenticated()" class="text-muted">
+                            Zaloguj się, aby dodać do półki.
+                        </small>
                     </div>
                 </div>
             </div>
