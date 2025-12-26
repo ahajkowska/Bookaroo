@@ -350,7 +350,7 @@
 
                     <div class="card-footer bg-transparent border-top-0 text-center pb-3">
 
-                        <a href="#" class="btn btn-sm btn-outline-dark rounded-pill w-100 mb-2">Szczegóły</a>
+                        <a th:href="@{/book/{id}(id=${book.id})}" class="btn btn-sm btn-outline-dark rounded-pill w-100 mb-2">Szczegóły</a>
 
                         <form sec:authorize="isAuthenticated()" th:action="@{/bookshelf/add}" method="post">
                             <input type="hidden" name="bookId" th:value="${book.id}"/>

@@ -41,7 +41,7 @@ public class User {
     private LocalDateTime createdAt;
 
     // Relacje
-    @OneToMany(mappedBy = "reviewer", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Review> givenReviews;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)

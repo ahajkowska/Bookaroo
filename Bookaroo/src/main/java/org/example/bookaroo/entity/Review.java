@@ -1,10 +1,12 @@
 package org.example.bookaroo.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -13,9 +15,12 @@ import java.util.UUID;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "reviews")
 @Entity
 public class Review {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -27,16 +32,11 @@ public class Review {
     private Integer rating;
 
     @Column(columnDefinition = "TEXT")
-    private String reviewText;
+    private String content;
 
     @CreationTimestamp
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
 
     @ManyToOne
     @JoinColumn(name = "book_id", nullable = false)
@@ -44,6 +44,12 @@ public class Review {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User reviewer;
+    private User user;
 
+    public Review(Integer rating, String content, User user, Book book) {
+        this.rating = rating;
+        this.content = content;
+        this.user = user;
+        this.book = book;
+    }
 }
