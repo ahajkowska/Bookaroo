@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Panel Administratora - Bookaroo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --kangaroo-brown: #8B4513;
+            --kangaroo-tan: #D2691E;
+            --kangaroo-light: #F4A460;
+            --kangaroo-cream: #FFDEAD;
+            --kangaroo-dark: #654321;
+            --aussie-red: #C8102E;
+            --outback-orange: #FF8C42;
+            --bush-green: #556B2F;
+        }
+
+        body {
+            background: linear-gradient(135deg, #E8C5A5 0%, #D2B48C 50%, #DEB887 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            position: relative;
+            overflow-x: hidden;
+            padding: 2rem 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .admin-header {
+            background: linear-gradient(135deg, #FFF8DC 0%, var(--kangaroo-cream) 100%);
+            border-radius: 30px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(101, 67, 33, 0.2);
+            border: 4px solid var(--kangaroo-tan);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-header h1 {
+            color: var(--kangaroo-brown);
+            font-weight: bold;
+            margin: 0;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(139, 69, 19, 0.1);
+        }
+
+        .btn-back {
+            background: var(--kangaroo-tan);
+            color: white;
+            border: 2px solid var(--kangaroo-dark);
+            padding: 0.6rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 4px 8px rgba(101, 67, 33, 0.3);
+        }
+
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(101, 67, 33, 0.5);
+            color: white;
+        }
+
+        .admin-card {
+            background: linear-gradient(135deg, #FFF8DC 0%, #FAEBD7 100%);
+            border: 4px solid var(--kangaroo-tan);
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(101, 67, 33, 0.2);
+            margin-bottom: 2.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .admin-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(101, 67, 33, 0.3);
+        }
+
+        .card-header-books {
+            background: var(--kangaroo-tan);
+            color: white;
+            padding: 1.5rem;
+            border-bottom: 3px solid var(--aussie-red);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header-authors {
+            background: var(--bush-green);
+            color: white;
+            padding: 1.5rem;
+            border-bottom: 3px solid var(--bush-green);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h5 {
+            margin: 0;
+            font-weight: bold;
+            font-size: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-add {
+            background: white;
+            color: var(--kangaroo-brown);
+            border: 2px solid white;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-add:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            color: var(--kangaroo-brown);
+        }
+
+        .card-body {
+            padding: 2rem;
+            background: linear-gradient(135deg, #FFFAF0, #FFF8DC);
+        }
+
+        .table {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(101, 67, 33, 0.1);
+        }
+
+        .table thead {
+            background: linear-gradient(135deg, var(--kangaroo-cream), #F5DEB3);
+        }
+
+        .table thead th {
+            color: var(--kangaroo-brown);
+            font-weight: 700;
+            border: none;
+            padding: 1rem;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        .table tbody tr {
+            border-bottom: 2px solid var(--kangaroo-cream);
+        }
+
+        .table tbody tr:hover {
+            background: linear-gradient(135deg, #FFF8DC, var(--kangaroo-cream));
+        }
+
+        .table tbody td {
+            padding: 1.2rem 1rem;
+            color: var(--kangaroo-dark);
+            vertical-align: middle;
+        }
+
+        .table tbody td.fw-bold {
+            color: var(--kangaroo-brown);
+            font-size: 1.05rem;
+        }
+
+        .btn-delete {
+            background: var(--aussie-red);
+            color: white;
+            border: 2px solid var(--aussie-red);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 0.9rem;
+        }
+
+        .btn-delete:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(200, 16, 46, 0.4);
+            color: white;
+            border-color: var(--aussie-red);
+        }
+
+        .btn-edit {
+            background: var(--bush-green);
+            color: white;
+            border: 2px solid var(--bush-green);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 0.9rem;
+        }
+
+        .btn-edit:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(200, 16, 46, 0.4);
+            color: white;
+            border-color: var(--bush-green);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--kangaroo-tan);
+            font-style: italic;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container mt-4 mb-5">
+    <div class="admin-header">
+        <h1>🦘 Panel Administratora</h1>
+        <a href="/" class="btn-back">Wróć do strony głównej</a>
+    </div>
+
+    <div class="admin-card">
+        <div class="card-header-books">
+            <h5>Książki</h5>
+            <a href="/admin/book/add" class="btn-add">+ Dodaj Książkę</a>
+        </div>
+        <div class="card-body">
+            <div th:if="${#lists.isEmpty(books)}" class="empty-state">
+                <p>Brak książek w bazie.</p>
+            </div>
+            <table th:unless="${#lists.isEmpty(books)}" class="table table-hover align-middle">
+                <thead>
+                <tr>
+                    <th>Tytuł</th>
+                    <th>Autor</th>
+                    <th>ISBN</th>
+                    <th style="width: 120px; text-align: center;">Akcje</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="book : ${books}">
+                    <td th:text="${book.title}" class="fw-bold">Tytuł</td>
+                    <td>
+                        <th:block th:if="${book.author != null}">
+                            <span th:text="${book.author.name}">Imię</span>
+                            <span> </span>
+                            <span th:text="${book.author.surname}">Nazwisko</span>
+                        </th:block>
+                        <span th:if="${book.author == null}" style="color: #999; font-style: italic;">Brak autora</span>
+                    </td>
+                    <td th:text="${book.isbn}">ISBN</td>
+                    <td style="text-align: center;">
+                        <a th:href="@{/admin/book/edit/{id}(id=${book.id})}"
+                           class="btn-edit">Edytuj</a>
+                        <a th:href="@{/admin/book/delete/{id}(id=${book.id})}"
+                           class="btn-delete"
+                           onclick="return confirm('Czy na pewno usunąć tę książkę?')">Usuń</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="admin-card">
+        <div class="card-header-authors">
+            <h5>Autorzy</h5>
+            <a href="/admin/author/add" class="btn-add">+ Dodaj Autora</a>
+        </div>
+        <div class="card-body">
+            <div th:if="${#lists.isEmpty(authors)}" class="empty-state">
+                <p>Brak autorów w bazie.</p>
+            </div>
+            <table th:unless="${#lists.isEmpty(authors)}" class="table table-hover align-middle">
+                <thead>
+                <tr>
+                    <th>Imię</th>
+                    <th>Nazwisko</th>
+                    <th style="width: 120px; text-align: center;">Akcje</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="author : ${authors}">
+                    <td th:text="${author.name}">Imię</td>
+                    <td th:text="${author.surname}" class="fw-bold">Nazwisko</td>
+                    <td style="text-align: center;">
+                        <a th:href="@{/admin/author/edit/{id}(id=${author.id})}"
+                           class="btn-edit">Edytuj</a>
+                        <a th:href="@{/admin/author/delete/{id}(id=${author.id})}"
+                           class="btn-delete"
+                           onclick="return confirm('Czy na pewno usunąć tego autora? Upewnij się, że nie ma przypisanych książek.')">Usuń</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

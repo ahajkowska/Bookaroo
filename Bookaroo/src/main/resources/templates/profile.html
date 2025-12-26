@@ -145,6 +145,12 @@
             <div sec:authorize="isAuthenticated()" class="d-flex align-items-center">
                 <span class="text-white me-3">Witaj, <strong sec:authentication="name">User</strong>!</span>
 
+                <a sec:authorize="hasRole('ADMIN')"
+                   href="/admin/dashboard"
+                   class="btn-custom me-2"
+                   style="background: #FFD700; color: #654321; border-color: #654321;">
+                    Panel Admina
+                </a>
                 <a th:href="@{/profile/{id}(id=${#authentication.principal.id})}"
                    class="btn-custom btn-profile me-2">
                     Mój Profil
@@ -166,7 +172,7 @@
 
 <div class="container">
 
-    <a href="/" class="btn-back">⬅ Wróć do strony głównej</a>
+    <a href="/" class="btn-back">Wróć do strony głównej</a>
 
     <div class="profile-card">
         <div class="row align-items-center">
@@ -191,7 +197,7 @@
 
                     <div th:if="${#authentication.name == user.username}"
                          style="position: relative; z-index: 10;">
-                        <a href="/profile/edit" class="btn-edit">✏️ Edytuj Profil</a>
+                        <a href="/profile/edit" class="btn-edit">Edytuj Profil</a>
                     </div>
                 </div>
 
