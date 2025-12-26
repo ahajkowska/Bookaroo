@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.Map;
@@ -34,10 +35,21 @@ public class ViewController {
 
     // strona główna z listą książek
     @GetMapping("/")
-    public String index(Model model) {
-        List<Book> books = bookRepository.findAll();
+    public String index(@RequestParam(required = false) String search, Model model) {
+        List<Book> books;
+
+        if (search != null && !search.isBlank()) {
+            books = bookRepository.searchBooks(search);
+            model.addAttribute("searchQuery", search);
+        } else {
+            books = bookRepository.findAll();
+        }
+
+        Map<UUID, Double> ratings = statisticsRepository.getAllBookAverageRatings();
+
+        model.addAttribute("ratings", ratings);
         model.addAttribute("books", books);
-        return "index"; // templates/index.html
+        return "index"; // index.html
     }
 
     // profil użytkownika

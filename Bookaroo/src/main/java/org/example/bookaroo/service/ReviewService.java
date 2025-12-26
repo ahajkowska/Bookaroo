@@ -1,5 +1,6 @@
 package org.example.bookaroo.service;
 
+import jakarta.transaction.Transactional;
 import org.example.bookaroo.entity.Book;
 import org.example.bookaroo.entity.Review;
 import org.example.bookaroo.entity.User;
@@ -24,6 +25,7 @@ public class ReviewService {
         this.userRepository = userRepository;
     }
 
+    @Transactional
     public void addReview(UUID userId, UUID bookId, int rating, String content) {
         User user = userRepository.findById(userId).orElseThrow();
         Book book = bookRepository.findById(bookId).orElseThrow();
@@ -33,7 +35,6 @@ public class ReviewService {
     }
 
     public List<Review> getReviewsForBook(UUID bookId) {
-        Book book = bookRepository.findById(bookId).orElseThrow();
-        return reviewRepository.findByBookOrderByCreatedAtDesc(book);
+        return reviewRepository.findByBookIdOrderByCreatedAtDesc(bookId);
     }
 }

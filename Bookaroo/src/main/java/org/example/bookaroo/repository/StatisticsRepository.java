@@ -3,6 +3,7 @@ package org.example.bookaroo.repository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -89,5 +90,22 @@ public class StatisticsRepository {
         }
 
         return stats;
+    }
+
+    public Map<UUID, Double> getAllBookAverageRatings() {
+        String sql = "SELECT book_id, AVG(CAST(rating AS FLOAT)) as avg_rating FROM reviews GROUP BY book_id";
+
+        return jdbcTemplate.query(sql, (ResultSet rs) -> {
+            Map<UUID, Double> map = new HashMap<>();
+            while (rs.next()) {
+                try {
+                    UUID bookId = UUID.fromString(rs.getString("book_id"));
+                    Double avg = rs.getDouble("avg_rating");
+                    map.put(bookId, avg);
+                } catch (Exception e) {
+                }
+            }
+            return map;
+        });
     }
 }
