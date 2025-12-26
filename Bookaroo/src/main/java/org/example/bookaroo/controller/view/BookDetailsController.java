@@ -22,10 +22,12 @@ public class BookDetailsController {
 
     private final BookRepository bookRepository;
     private final ReviewService reviewService;
+    private final org.example.bookaroo.repository.StatisticsRepository statisticsRepository;
 
-    public BookDetailsController(BookRepository bookRepository, ReviewService reviewService) {
+    public BookDetailsController(BookRepository bookRepository, ReviewService reviewService, org.example.bookaroo.repository.StatisticsRepository statisticsRepository) {
         this.bookRepository = bookRepository;
         this.reviewService = reviewService;
+        this.statisticsRepository = statisticsRepository;
     }
 
     // szczegóły książki + recenzje
@@ -36,6 +38,9 @@ public class BookDetailsController {
 
         List<Review> reviews = reviewService.getReviewsForBook(id);
 
+        var stats = statisticsRepository.getBookStats(id);
+        model.addAttribute("stats", stats);
+        
         model.addAttribute("book", book);
         model.addAttribute("reviews", reviews);
         return "book-details";
