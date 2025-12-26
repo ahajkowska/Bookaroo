@@ -33,7 +33,8 @@ public class CustomUserDetailsService implements UserDetailsService {
                 user.getUsername(),
                 user.getPassword(),
                 authorities,
-                user.getId()
+                user.getId(),
+                user.isLocked()
         );
     }
 
@@ -41,8 +42,16 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         private final UUID id;
 
-        public BookarooUserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities, UUID id) {
-            super(username, password, authorities);
+        public BookarooUserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities, UUID id, boolean isLocked) {
+            super(
+                    username,
+                    password,
+                    true,  // enabled
+                    true,  // accountNonExpired
+                    true,  // credentialsNonExpired
+                    !isLocked, // accountNonLocked
+                    authorities
+            );
             this.id = id;
         }
 

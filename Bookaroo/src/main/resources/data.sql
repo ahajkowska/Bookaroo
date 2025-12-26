@@ -1,8 +1,8 @@
 -- Przykładowi użytkownicy (czytelnicy)
-INSERT INTO users (id, username, email, password, role, avatar, bio, created_at)
+INSERT INTO users (id, username, email, password, role, avatar, bio, is_locked, created_at)
 VALUES
-    ('550e8400-e29b-41d4-a716-446655440000', 'adam_malysz', 'adam@bookaroo.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'USER', 'https://i.pravatar.cc/150?img=12', 'Uwielbiam czytać fantasy i kryminały!', CURRENT_TIMESTAMP),
-    ('550e8400-e29b-41d4-a716-446655440001', 'magda_gessler', 'magda@bookaroo.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'ADMIN', 'https://i.pravatar.cc/150?img=25', 'Administrator społeczności Book Lovers. Pasjonatka literatury pięknej.', CURRENT_TIMESTAMP);
+    ('550e8400-e29b-41d4-a716-446655440000', 'adam_malysz', 'adam@bookaroo.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'USER', 'https://i.pravatar.cc/150?img=12', 'Uwielbiam czytać fantasy i kryminały!', false, CURRENT_TIMESTAMP),
+    ('550e8400-e29b-41d4-a716-446655440001', 'magda_gessler', 'magda@bookaroo.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'ADMIN', 'https://i.pravatar.cc/150?img=25', 'Administrator społeczności Book Lovers. Pasjonatka literatury pięknej.', false, CURRENT_TIMESTAMP);
 
 -- Przykładowe gatunki książek
 INSERT INTO genres (id, name, description)
@@ -13,7 +13,7 @@ VALUES
     ('660e8400-e29b-41d4-a716-446655440003', 'Science Fiction', 'Fantastyka naukowa'),
     ('660e8400-e29b-41d4-a716-446655440004', 'Literatura klasyczna', 'Klasyka literatury światowej');
 
--- 1. Autorzy
+-- Autorzy
 INSERT INTO authors (id, name, surname) VALUES
                                             ('11111111-1111-1111-1111-111111111111', 'J.R.R.', 'Tolkien'),
                                             ('22222222-2222-2222-2222-222222222222', 'George', 'Orwell');

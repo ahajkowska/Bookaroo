@@ -2,8 +2,12 @@ package org.example.bookaroo.controller.view;
 
 import org.example.bookaroo.entity.Author;
 import org.example.bookaroo.entity.Book;
+import org.example.bookaroo.entity.User;
 import org.example.bookaroo.repository.AuthorRepository;
 import org.example.bookaroo.repository.BookRepository;
+import org.example.bookaroo.repository.UserRepository;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,16 +20,19 @@ public class AdminController {
 
     private final BookRepository bookRepository;
     private final AuthorRepository authorRepository;
+    private final UserRepository userRepository;
 
-    public AdminController(BookRepository bookRepository, AuthorRepository authorRepository) {
+    public AdminController(BookRepository bookRepository, AuthorRepository authorRepository, UserRepository userRepository) {
         this.bookRepository = bookRepository;
         this.authorRepository = authorRepository;
+        this.userRepository = userRepository;
     }
 
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
         model.addAttribute("books", bookRepository.findAll());
         model.addAttribute("authors", authorRepository.findAll());
+        model.addAttribute("users", userRepository.findAll());
         return "admin/dashboard";
     }
 
@@ -90,5 +97,22 @@ public class AdminController {
         model.addAttribute("author", author);
 
         return "admin/author-form";
+    }
+
+    // moderacja użytkowników
+    @GetMapping("/user/toggle-lock/{id}")
+    public String toggleUserLock(@PathVariable UUID id, @AuthenticationPrincipal UserDetails currentUser) {
+        User userToMod = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Nieprawidłowe ID użytkownika"));
+
+        if (currentUser.getUsername().equals(userToMod.getUsername())) {
+            System.out.println("Nie możesz zablokować samego siebie!");
+            return "redirect:/admin/dashboard?error=self_ban";
+        }
+
+        userToMod.setLocked(!userToMod.isLocked());
+        userRepository.save(userToMod);
+
+        return "redirect:/admin/dashboard";
     }
 }
