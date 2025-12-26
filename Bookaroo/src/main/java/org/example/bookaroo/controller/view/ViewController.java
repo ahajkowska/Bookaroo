@@ -5,6 +5,7 @@ import org.example.bookaroo.entity.Bookshelf;
 import org.example.bookaroo.entity.User;
 import org.example.bookaroo.exception.ResourceNotFoundException;
 import org.example.bookaroo.repository.BookRepository;
+import org.example.bookaroo.repository.StatisticsRepository;
 import org.example.bookaroo.repository.UserRepository;
 import org.example.bookaroo.service.UserService;
 import org.springframework.stereotype.Controller;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Controller
@@ -21,11 +23,13 @@ public class ViewController {
     private final BookRepository bookRepository;
     private final UserService userService;
     private final UserRepository userRepository;
+    private final StatisticsRepository statisticsRepository;
 
-    public ViewController(BookRepository bookRepository, UserService userService, UserRepository userRepository) {
+    public ViewController(BookRepository bookRepository, UserService userService, UserRepository userRepository, StatisticsRepository statisticsRepository) {
         this.bookRepository = bookRepository;
         this.userService = userService;
         this.userRepository = userRepository;
+        this.statisticsRepository = statisticsRepository;
     }
 
     // strona główna z listą książek
@@ -43,6 +47,9 @@ public class ViewController {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
         List<Bookshelf> shelves = userService.getUserShelves(userId);
+
+        Map<String, Object> stats = statisticsRepository.getUserStats(userId);
+        model.addAttribute("stats", stats);
 
         model.addAttribute("user", user);
         model.addAttribute("shelves", shelves);

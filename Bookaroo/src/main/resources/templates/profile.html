@@ -201,6 +201,21 @@
         </div>
     </div>
 
+    <div class="row text-center mb-4 g-3">
+        <div class="col-6">
+            <div class="p-3 border rounded-4" style="background: rgba(255, 255, 255, 0.6); border-color: var(--kangaroo-tan) !important;">
+                <h3 class="fw-bold mb-0" style="color: var(--aussie-red);" th:text="${stats['shelvesCount']}">0</h3>
+                <small class="text-muted fw-bold">Półek</small>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="p-3 border rounded-4" style="background: rgba(255, 255, 255, 0.6); border-color: var(--kangaroo-tan) !important;">
+                <h3 class="fw-bold mb-0" style="color: var(--bush-green);" th:text="${stats['booksCount']}">0</h3>
+                <small class="text-muted fw-bold">Książek łącznie</small>
+            </div>
+        </div>
+    </div>
+
     <hr class="section-divider">
 
     <h3 class="library-title">Biblioteczka</h3>
