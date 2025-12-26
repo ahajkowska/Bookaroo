@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <title th:text="${'Profil - ' + user.username}">Profil</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -12,6 +13,7 @@
             --kangaroo-dark: #654321;
             --aussie-red: #C8102E;
             --outback-orange: #FF8C42;
+            --bush-green: #556B2F;
         }
 
         body {
@@ -20,31 +22,11 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             position: relative;
             overflow-x: hidden;
+            padding-top: 120px;
         }
 
-        body::before {
-            content: '🦘';
-            position: fixed;
-            font-size: 15rem;
-            opacity: 0.05;
-            bottom: -50px;
-            right: -50px;
-            transform: rotate(-15deg);
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        body::after {
-            content: '🦘';
-            position: fixed;
-            font-size: 10rem;
-            opacity: 0.05;
-            top: 50px;
-            left: -30px;
-            transform: rotate(15deg) scaleX(-1);
-            pointer-events: none;
-            z-index: 0;
-        }
+        body::before { content: '\1F998'; position: fixed; font-size: 15rem; opacity: 0.05; bottom: -50px; right: -50px; transform: rotate(-15deg); pointer-events: none; z-index: 0; }
+        body::after { content: '\1F998'; position: fixed; font-size: 10rem; opacity: 0.05; top: 50px; left: -30px; transform: rotate(15deg) scaleX(-1); pointer-events: none; z-index: 0; }
 
         .navbar {
             background: linear-gradient(135deg, var(--kangaroo-brown), var(--kangaroo-tan)) !important;
@@ -61,15 +43,27 @@
             transition: transform 0.3s ease;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
+        .navbar-brand:hover { transform: scale(1.05) rotate(-3deg); }
 
-        .navbar-brand:hover {
-            transform: scale(1.05) rotate(-3deg);
+        .btn-custom {
+            padding: 0.5rem 1.5rem; border-radius: 25px; font-weight: 600;
+            transition: all 0.3s ease; text-decoration: none; display: inline-block;
+            border-width: 2px; border-style: solid;
         }
 
-        .container {
-            position: relative;
-            z-index: 1;
-        }
+        .btn-login { background: linear-gradient(135deg, var(--kangaroo-cream), #FFF); color: var(--kangaroo-brown); border-color: var(--kangaroo-brown); }
+        .btn-login:hover { background: var(--kangaroo-brown); color: var(--kangaroo-cream); transform: translateY(-2px); border-color: var(--kangaroo-brown); }
+
+        .btn-register { background: linear-gradient(135deg, var(--aussie-red), var(--outback-orange)); color: white; border-color: white; box-shadow: 0 4px 10px rgba(200, 16, 46, 0.3); }
+        .btn-register:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(200, 16, 46, 0.5); color: white; background: linear-gradient(135deg, var(--outback-orange), var(--aussie-red)); border-color: white; }
+
+        .btn-profile { background: linear-gradient(135deg, var(--bush-green), #6B8E23); color: white; border-color: #F5DEB3; }
+        .btn-profile:hover { transform: translateY(-2px); color: white; box-shadow: 0 4px 10px rgba(85, 107, 47, 0.4); border-color: #F5DEB3; }
+
+        .btn-logout { background: rgba(0, 0, 0, 0.2); color: #FFDEAD; border-color: #FFDEAD; }
+        .btn-logout:hover { background: var(--aussie-red); color: white; border-color: #FFDEAD; }
+
+        .container { position: relative; z-index: 1; }
 
         .profile-card {
             background: linear-gradient(135deg, #FFF8DC 0%, var(--kangaroo-cream) 100%);
@@ -82,217 +76,126 @@
             overflow: hidden;
         }
 
-        .profile-card::before {
-            content: '🦘';
-            position: absolute;
-            font-size: 6rem;
-            opacity: 0.08;
-            top: 10px;
-            right: 20px;
-        }
+        .profile-card::before { content: '\1F998'; position: absolute; font-size: 6rem; opacity: 0.08; top: 10px; right: 20px; }
 
         .profile-avatar {
+            width: 150px; height: 150px; object-fit: cover;
             border: 5px solid var(--kangaroo-tan);
             box-shadow: 0 8px 20px rgba(101, 67, 33, 0.3);
             transition: transform 0.3s ease;
-            position: relative;
-            z-index: 1;
+            position: relative; z-index: 1; border-radius: 50%;
         }
+        .avatar-placeholder {
+            width: 150px; height: 150px; background: var(--kangaroo-tan); color: white;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 4rem; font-weight: bold; border: 5px solid var(--kangaroo-brown); margin: 0 auto;
+        }
+        .profile-avatar:hover { transform: scale(1.05) rotate(-3deg); }
 
-        .profile-avatar:hover {
-            transform: scale(1.05) rotate(-3deg);
-        }
+        .profile-info h2 { color: var(--kangaroo-brown); font-weight: bold; text-shadow: 2px 2px 4px rgba(139, 69, 19, 0.1); margin-bottom: 0.5rem; }
+        .profile-info .text-muted { color: var(--kangaroo-tan) !important; font-weight: 500; }
+        .profile-bio { color: var(--kangaroo-dark); font-size: 1.1rem; margin: 1rem 0; line-height: 1.6; }
+        .badge-role { background: linear-gradient(135deg, var(--kangaroo-brown), var(--kangaroo-tan)) !important; padding: 0.5rem 1.2rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; box-shadow: 0 4px 8px rgba(101, 67, 33, 0.3); }
 
-        .profile-info h2 {
-            color: var(--kangaroo-brown);
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(139, 69, 19, 0.1);
-            margin-bottom: 0.5rem;
-        }
+        .section-divider { border: 0; height: 3px; background: linear-gradient(to right, transparent, var(--kangaroo-tan), transparent); margin: 2rem 0; }
 
-        .profile-info .text-muted {
-            color: var(--kangaroo-tan) !important;
-            font-weight: 500;
-        }
+        .library-title { color: var(--kangaroo-dark); font-weight: bold; font-size: 2rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.5); }
+        .library-title::before { content: '\1F998'; font-size: 2.5rem; animation: hop 2s ease-in-out infinite; }
 
-        .profile-bio {
-            color: var(--kangaroo-dark);
-            font-size: 1.1rem;
-            margin: 1rem 0;
-            line-height: 1.6;
-        }
+        .accordion { border-radius: 20px; overflow: hidden; box-shadow: 0 8px 20px rgba(101, 67, 33, 0.15); }
+        .accordion-item { border: none; border-bottom: 2px solid var(--kangaroo-cream); background: transparent; }
+        .accordion-item:last-child { border-bottom: none; }
+        .accordion-button { background: linear-gradient(135deg, var(--kangaroo-cream), #F5DEB3) !important; color: var(--kangaroo-brown) !important; font-weight: 700; font-size: 1.1rem; padding: 1.2rem 1.5rem; border: none; box-shadow: none !important; transition: all 0.3s ease; }
+        .accordion-button:hover { background: linear-gradient(135deg, #F5DEB3, var(--kangaroo-light)) !important; transform: translateX(5px); }
+        .accordion-button::after { filter: brightness(0) invert(0.4); }
+        .accordion-body { background: linear-gradient(135deg, #FFF8DC, #FAEBD7); padding: 1.5rem; }
 
-        .badge-role {
-            background: linear-gradient(135deg, var(--kangaroo-brown), var(--kangaroo-tan)) !important;
-            padding: 0.5rem 1.2rem;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            box-shadow: 0 4px 8px rgba(101, 67, 33, 0.3);
-        }
+        .list-group-item { background: linear-gradient(135deg, #FFFAF0, var(--kangaroo-cream)); border: 2px solid var(--kangaroo-tan) !important; border-radius: 15px !important; margin-bottom: 0.8rem; padding: 1.2rem; transition: all 0.3s ease; position: relative; }
+        .list-group-item:hover { transform: translateX(10px); box-shadow: 0 6px 15px rgba(101, 67, 33, 0.2); border-color: var(--aussie-red) !important; }
+        .list-group-item:hover::before { opacity: 1; left: 10px; }
+        .list-group-item strong { color: var(--kangaroo-brown); font-size: 1.05rem; font-weight: 700; }
+        .list-group-item .text-muted { color: var(--kangaroo-tan) !important; font-weight: 500; }
+        .badge-rating { background: linear-gradient(135deg, var(--aussie-red), var(--outback-orange)) !important; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; box-shadow: 0 3px 6px rgba(200, 16, 46, 0.3); }
+        .badge-rating::before { content: '⭐ '; }
+        .empty-shelf { background: linear-gradient(135deg, #FFF8DC, var(--kangaroo-cream)); border: 2px dashed var(--kangaroo-tan); border-radius: 15px; padding: 2rem; text-align: center; position: relative; }
+        .empty-shelf::before { content: '\1F998'; font-size: 3rem; display: block; margin-bottom: 0.5rem; opacity: 0.5; }
+        .empty-shelf p { color: var(--kangaroo-tan); font-style: italic; font-size: 1.1rem; margin: 0; }
+        .list-group-flush { border-radius: 0 !important; }
+        .book-entry { padding-left: 2rem; }
 
-        .section-divider {
-            border: 0;
-            height: 3px;
-            background: linear-gradient(to right, transparent, var(--kangaroo-tan), transparent);
-            margin: 2rem 0;
-        }
+        .btn-back { color: var(--kangaroo-brown); font-weight: bold; text-decoration: none; display: inline-block; margin-bottom: 15px; font-size: 1.1rem; }
+        .btn-back:hover { color: var(--aussie-red); }
 
-        .library-title {
-            color: var(--kangaroo-dark);
-            font-weight: bold;
-            font-size: 2rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.5);
-        }
-
-        .library-title::before {
-            content: '🦘';
-            font-size: 2.5rem;
-            animation: hop 2s ease-in-out infinite;
-        }
-
-        .accordion {
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 8px 20px rgba(101, 67, 33, 0.15);
-        }
-
-        .accordion-item {
-            border: none;
-            border-bottom: 2px solid var(--kangaroo-cream);
-            background: transparent;
-        }
-
-        .accordion-item:last-child {
-            border-bottom: none;
-        }
-
-        .accordion-button {
-            background: linear-gradient(135deg, var(--kangaroo-cream), #F5DEB3) !important;
-            color: var(--kangaroo-brown) !important;
-            font-weight: 700;
-            font-size: 1.1rem;
-            padding: 1.2rem 1.5rem;
-            border: none;
-            box-shadow: none !important;
-            transition: all 0.3s ease;
-        }
-
-        .accordion-button:hover {
-            background: linear-gradient(135deg, #F5DEB3, var(--kangaroo-light)) !important;
-            transform: translateX(5px);
-        }
-
-        .accordion-button::after {
-            filter: brightness(0) invert(0.4);
-        }
-
-        .accordion-body {
-            background: linear-gradient(135deg, #FFF8DC, #FAEBD7);
-            padding: 1.5rem;
-        }
-
-        .list-group-item {
-            background: linear-gradient(135deg, #FFFAF0, var(--kangaroo-cream));
-            border: 2px solid var(--kangaroo-tan) !important;
-            border-radius: 15px !important;
-            margin-bottom: 0.8rem;
-            padding: 1.2rem;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .list-group-item:hover {
-            transform: translateX(10px);
-            box-shadow: 0 6px 15px rgba(101, 67, 33, 0.2);
-            border-color: var(--aussie-red) !important;
-        }
-
-        .list-group-item:hover::before {
-            opacity: 1;
-            left: 10px;
-        }
-
-        .list-group-item strong {
-            color: var(--kangaroo-brown);
-            font-size: 1.05rem;
-            font-weight: 700;
-        }
-
-        .list-group-item .text-muted {
-            color: var(--kangaroo-tan) !important;
-            font-weight: 500;
-        }
-
-        .badge-rating {
-            background: linear-gradient(135deg, var(--aussie-red), var(--outback-orange)) !important;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            box-shadow: 0 3px 6px rgba(200, 16, 46, 0.3);
-        }
-
-        .badge-rating::before {
-            content: '⭐ ';
-        }
-
-        .empty-shelf {
-            background: linear-gradient(135deg, #FFF8DC, var(--kangaroo-cream));
-            border: 2px dashed var(--kangaroo-tan);
-            border-radius: 15px;
-            padding: 2rem;
-            text-align: center;
-            position: relative;
-        }
-
-        .empty-shelf::before {
-            content: '🦘';
-            font-size: 3rem;
-            display: block;
-            margin-bottom: 0.5rem;
-            opacity: 0.5;
-        }
-
-        .empty-shelf p {
-            color: var(--kangaroo-tan);
-            font-style: italic;
-            font-size: 1.1rem;
-            margin: 0;
-        }
-
-        .list-group-flush {
-            border-radius: 0 !important;
-        }
-
-        .book-entry {
-            padding-left: 2rem;
-        }
+        .btn-edit { background: linear-gradient(135deg, var(--aussie-red), var(--outback-orange)); color: white; border: 2px solid #FFF8DC; padding: 0.4rem 1.2rem; border-radius: 20px; font-weight: 600; text-decoration: none; box-shadow: 0 4px 8px rgba(0,0,0,0.2); font-size: 0.9rem; }
+        .btn-edit:hover { background: var(--aussie-red); color: white; transform: translateY(-2px); }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg mb-4">
+<nav class="navbar navbar-expand-lg fixed-top navbar-dark">
     <div class="container">
         <a class="navbar-brand" href="/">🦘 Bookaroo</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse justify-content-end" id="navbarContent">
+
+            <div sec:authorize="isAuthenticated()" class="d-flex align-items-center">
+                <span class="text-white me-3">Witaj, <strong sec:authentication="name">User</strong>!</span>
+
+                <a th:href="@{/profile/{id}(id=${#authentication.principal.id})}"
+                   class="btn-custom btn-profile me-2">
+                    Mój Profil
+                </a>
+
+                <form th:action="@{/logout}" method="post" class="d-inline">
+                    <button type="submit" class="btn-custom btn-logout">Wyloguj</button>
+                </form>
+            </div>
+
+            <div sec:authorize="!isAuthenticated()">
+                <a href="/login" class="btn-custom btn-login me-2">Zaloguj się</a>
+                <a href="/register" class="btn-custom btn-register">Dołącz do nas</a>
+            </div>
+
+        </div>
     </div>
 </nav>
 
 <div class="container">
+
+    <a href="/" class="btn-back">⬅ Wróć do strony głównej</a>
+
     <div class="profile-card">
         <div class="row align-items-center">
-            <div class="col-md-2 text-center">
-                <img th:src="${user.avatar != null ? user.avatar : ''}"
-                     class="rounded-circle profile-avatar" alt="Avatar">
+
+            <div class="col-md-3 text-center mb-3 mb-md-0">
+                <img th:if="${user.avatar != null && !user.avatar.isEmpty()}"
+                     th:src="${user.avatar}"
+                     class="profile-avatar" alt="Avatar">
+
+                <div th:unless="${user.avatar != null && !user.avatar.isEmpty()}"
+                     class="avatar-placeholder">
+                    <span th:text="${#strings.substring(user.username, 0, 1).toUpperCase()}">U</span>
+                </div>
             </div>
-            <div class="col-md-10 profile-info">
-                <h2 th:text="${user.username}">Username</h2>
-                <p class="text-muted" th:text="${user.email}">email@bookaroo.com</p>
-                <p class="profile-bio" th:text="${user.bio}">Bio użytkownika</p>
+
+            <div class="col-md-9 profile-info">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h2 th:text="${user.username}">Username</h2>
+                        <p class="text-muted" th:text="${user.email}">email@bookaroo.com</p>
+                    </div>
+
+                    <div th:if="${#authentication.name == user.username}"
+                         style="position: relative; z-index: 10;">
+                        <a href="/profile/edit" class="btn-edit">✏️ Edytuj Profil</a>
+                    </div>
+                </div>
+
+                <p class="profile-bio" th:text="${user.bio != null && !user.bio.isEmpty() ? user.bio : 'Brak opisu.'}">Bio użytkownika</p>
                 <span class="badge badge-role" th:text="${user.role}">ROLE</span>
             </div>
         </div>
@@ -320,7 +223,7 @@
                             th:each="book : ${shelf.books}">
                             <div>
                                 <strong th:text="${book.title}">Tytuł</strong>
-                                <span class="text-muted ms-2" th:text="${book.author?.firstName + ' ' + book.author?.lastName}">Autor</span>
+                                <span class="text-muted ms-2" th:text="${book.author != null ? book.author.name + ' ' + book.author.surname : 'Autor nieznany'}">Autor</span>
                             </div>
                             <span class="badge badge-rating" th:text="${book.averageRating}">Rating</span>
                         </li>
