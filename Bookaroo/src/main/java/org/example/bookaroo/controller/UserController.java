@@ -115,19 +115,6 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/newest")
-    @Operation(summary = "Pobierz najnowszych użytkowników", description = "Zwraca listę ostatnio zarejestrowanych czytelników")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Lista najnowszych użytkowników",
-                    content = @Content(mediaType = "application/json"))
-    })
-    public ResponseEntity<List<UserDTO>> getNewestUsers(
-            @Parameter(description = "Liczba użytkowników do pobrania") @RequestParam(defaultValue = "10") int limit
-    ) {
-        List<UserDTO> newest = userService.getNewestUsers(limit);
-        return ResponseEntity.ok(newest);
-    }
-
     @GetMapping("/alphabetical")
     @Operation(summary = "Pobierz użytkowników alfabetycznie", description = "Zwraca listę użytkowników posortowaną według username")
     @ApiResponses({
