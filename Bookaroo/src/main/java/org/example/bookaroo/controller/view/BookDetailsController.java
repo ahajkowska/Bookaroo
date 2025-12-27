@@ -1,8 +1,12 @@
 package org.example.bookaroo.controller.view;
 
 import org.example.bookaroo.entity.Book;
+import org.example.bookaroo.entity.Bookshelf;
 import org.example.bookaroo.entity.Review;
+import org.example.bookaroo.entity.User;
 import org.example.bookaroo.repository.BookRepository;
+import org.example.bookaroo.repository.StatisticsRepository;
+import org.example.bookaroo.repository.UserRepository;
 import org.example.bookaroo.service.CustomUserDetailsService;
 import org.example.bookaroo.service.ReviewService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,27 +26,40 @@ public class BookDetailsController {
 
     private final BookRepository bookRepository;
     private final ReviewService reviewService;
-    private final org.example.bookaroo.repository.StatisticsRepository statisticsRepository;
+    private final StatisticsRepository statisticsRepository;
+    private final UserRepository userRepository;
 
-    public BookDetailsController(BookRepository bookRepository, ReviewService reviewService, org.example.bookaroo.repository.StatisticsRepository statisticsRepository) {
+    public BookDetailsController(BookRepository bookRepository,
+                                 ReviewService reviewService,
+                                 StatisticsRepository statisticsRepository,
+                                 UserRepository userRepository) {
         this.bookRepository = bookRepository;
         this.reviewService = reviewService;
         this.statisticsRepository = statisticsRepository;
+        this.userRepository = userRepository;
     }
 
-    // szczegóły książki + recenzje
+    // szczegóły książki + recenzje + lista półek
     @GetMapping("/book/{id}")
-    public String showBookDetails(@PathVariable UUID id, Model model) {
+    public String showBookDetails(@PathVariable UUID id, Model model,
+                                  @AuthenticationPrincipal UserDetails currentUser) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Book not found"));
 
         List<Review> reviews = reviewService.getReviewsForBook(id);
-
         var stats = statisticsRepository.getBookStats(id);
+
         model.addAttribute("stats", stats);
-        
         model.addAttribute("book", book);
         model.addAttribute("reviews", reviews);
+
+        // przekazanie półek użytkownika do widoku
+        if (currentUser != null) {
+            User user = userRepository.findByUsername(currentUser.getUsername()).orElseThrow();
+            List<Bookshelf> userShelves = user.getBookshelves();
+            model.addAttribute("userShelves", userShelves);
+        }
+
         return "book-details";
     }
 

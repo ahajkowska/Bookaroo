@@ -394,10 +394,13 @@
                             <input type="hidden" name="bookId" th:value="${book.id}"/>
 
                             <div class="input-group input-group-sm">
-                                <select name="shelfName" class="form-select" style="border-radius: 20px 0 0 20px;">
-                                    <option value="Chcę przeczytać">Chcę przeczytać</option>
-                                    <option value="Teraz czytam">Teraz czytam</option>
-                                    <option value="Przeczytane">Przeczytane</option>
+                                <select name="shelfName" class="form-select" style="border-radius: 20px 0 0 20px;" required>
+                                    <option value="" disabled selected>-- Wybierz --</option>
+                                    <option th:each="shelf : ${userShelves}"
+                                            th:value="${shelf.name}"
+                                            th:text="${shelf.name}">
+                                        Nazwa Półki
+                                    </option>
                                 </select>
                                 <button class="btn btn-success" type="submit" style="border-radius: 0 20px 20px 0;">+</button>
                             </div>

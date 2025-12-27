@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -155,6 +154,7 @@ public class ProfileController {
                                 Bookshelf newShelf = new Bookshelf();
                                 newShelf.setName(shelfDto.name());
                                 newShelf.setUser(user);
+                                newShelf.setIsDefault(false);
                                 user.getBookshelves().add(newShelf);
                                 return bookshelfRepository.save(newShelf);
                             });
@@ -199,5 +199,16 @@ public class ProfileController {
             e.printStackTrace();
             return "redirect:/?error=import_failed";
         }
+    }
+
+    @PostMapping("/profile/shelves/create")
+    public String createShelf(@AuthenticationPrincipal UserDetails currentUser,
+                              @RequestParam("name") String name) {
+        if (name != null && !name.trim().isEmpty()) {
+            userService.createShelf(currentUser.getUsername(), name.trim());
+        }
+
+        User user = userRepository.findByUsername(currentUser.getUsername()).orElseThrow();
+        return "redirect:/profile/" + user.getId();
     }
 }

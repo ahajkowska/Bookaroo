@@ -152,15 +152,6 @@ public class UserService {
         userRepository.delete(user);
     }
 
-    // GET USERS BY REGISTRATION DATE (newest first)
-    @Transactional(readOnly = true)
-    public List<UserDTO> getNewestUsers(int limit) {
-        return userRepository.findAllByOrderByCreatedAtDesc().stream()
-                .limit(limit)
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
-
     // GET USERS BY USERNAME (alphabetically)
     @Transactional(readOnly = true)
     public List<UserDTO> getUsersAlphabetically() {
@@ -242,5 +233,22 @@ public class UserService {
         shelf.setIsDefault(true);
         shelf.setUser(user);
         return shelf;
+    }
+
+    @Transactional
+    public void createShelf(String username, String shelfName) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+
+        boolean exists = user.getBookshelves().stream()
+                .anyMatch(s -> s.getName().equalsIgnoreCase(shelfName));
+
+        if (!exists) {
+            Bookshelf shelf = new Bookshelf();
+            shelf.setName(shelfName);
+            shelf.setUser(user);
+            shelf.setIsDefault(false); // własna półka
+            bookshelfRepository.save(shelf);
+        }
     }
 }
