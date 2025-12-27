@@ -222,6 +222,42 @@
         </div>
     </div>
 
+    <div th:if="${param.success == 'restored'}" class="alert alert-success alert-dismissible fade show">
+        Profil został pomyślnie przywrócony!
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${param.error == 'import_failed'}" class="alert alert-danger alert-dismissible fade show">
+        Błąd przywracania danych. Sprawdź czy plik jest poprawny.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${isOwner}" class="card mb-4 shadow-sm" style="border: 2px dashed var(--kangaroo-tan); background: rgba(255, 255, 255, 0.8);">
+        <div class="card-header fw-bold" style="background: var(--kangaroo-tan); color: white;">
+            Zarządzanie i Kopia Zapasowa
+        </div>
+        <div class="card-body">
+            <p class="small text-muted mb-3">
+                Tutaj możesz pobrać kopię swoich recenzji i układu półek lub przywrócić je z pliku.
+            </p>
+            <div class="row g-3 align-items-center">
+                <div class="col-md-5">
+                    <a href="/profile/export" class="btn btn-outline-dark w-100 fw-bold">
+                        Eksportuj dane (JSON)
+                    </a>
+                </div>
+
+                <div class="col-md-1 text-center fw-bold text-muted">LUB</div>
+
+                <div class="col-md-6">
+                    <form th:action="@{/profile/import}" method="post" enctype="multipart/form-data" class="d-flex gap-2">
+                        <input type="file" name="file" class="form-control" accept=".json" required>
+                        <button type="submit" class="btn btn-success fw-bold">Wgraj</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <hr class="section-divider">
 
     <h3 class="library-title">Biblioteczka</h3>
