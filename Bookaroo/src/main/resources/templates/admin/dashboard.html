@@ -363,6 +363,61 @@
             </table>
         </div>
     </div>
+
+    <div class="admin-card mt-5">
+        <div class="card-body">
+            <h5 class="mb-0 fw-bold" style="color: #0d47a1;">Recenzje (Moderacja)</h5>
+        </div>
+        <div class="card-body">
+
+            <div th:if="${#lists.isEmpty(reviews)}" class="empty-state">
+                <p>Brak recenzji w systemie.</p>
+            </div>
+
+            <table th:unless="${#lists.isEmpty(reviews)}" class="table table-hover align-middle">
+                <thead>
+                <tr>
+                    <th>Książka</th>
+                    <th>Użytkownik</th>
+                    <th>Ocena</th>
+                    <th>Treść</th>
+                    <th style="width: 100px;">Akcje</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="review : ${reviews}">
+                    <td th:text="${review.book.title}" class="fw-bold">Tytuł</td>
+
+                    <td>
+                        <span th:text="${review.user.username}">User</span>
+                    </td>
+
+                    <td>
+                        <span class="badge bg-warning text-dark">
+                            <span th:text="${review.rating}">10</span> ★
+                        </span>
+                    </td>
+
+                    <td>
+                        <span th:text="${#strings.abbreviate(review.content, 50)}"
+                              th:title="${review.content}"
+                              data-bs-toggle="tooltip">
+                            Treść recenzji...
+                        </span>
+                    </td>
+
+                    <td>
+                        <a th:href="@{/admin/review/delete/{id}(id=${review.id})}"
+                           class="btn btn-sm btn-outline-danger"
+                           onclick="return confirm('Czy na pewno usunąć tę recenzję?')">
+                            Usuń
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

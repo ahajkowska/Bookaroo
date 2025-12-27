@@ -5,6 +5,7 @@ import org.example.bookaroo.entity.Book;
 import org.example.bookaroo.entity.User;
 import org.example.bookaroo.repository.AuthorRepository;
 import org.example.bookaroo.repository.BookRepository;
+import org.example.bookaroo.repository.ReviewRepository;
 import org.example.bookaroo.repository.UserRepository;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,11 +22,13 @@ public class AdminController {
     private final BookRepository bookRepository;
     private final AuthorRepository authorRepository;
     private final UserRepository userRepository;
+    private final ReviewRepository reviewRepository;
 
-    public AdminController(BookRepository bookRepository, AuthorRepository authorRepository, UserRepository userRepository) {
+    public AdminController(BookRepository bookRepository, AuthorRepository authorRepository, UserRepository userRepository, ReviewRepository reviewRepository) {
         this.bookRepository = bookRepository;
         this.authorRepository = authorRepository;
         this.userRepository = userRepository;
+        this.reviewRepository = reviewRepository;
     }
 
     @GetMapping("/dashboard")
@@ -33,6 +36,7 @@ public class AdminController {
         model.addAttribute("books", bookRepository.findAll());
         model.addAttribute("authors", authorRepository.findAll());
         model.addAttribute("users", userRepository.findAll());
+        model.addAttribute("reviews", reviewRepository.findAll());
         return "admin/dashboard";
     }
 
@@ -113,6 +117,12 @@ public class AdminController {
         userToMod.setLocked(!userToMod.isLocked());
         userRepository.save(userToMod);
 
+        return "redirect:/admin/dashboard";
+    }
+
+    @GetMapping("/review/delete/{id}")
+    public String deleteReview(@PathVariable UUID id) {
+        reviewRepository.deleteById(id);
         return "redirect:/admin/dashboard";
     }
 }
