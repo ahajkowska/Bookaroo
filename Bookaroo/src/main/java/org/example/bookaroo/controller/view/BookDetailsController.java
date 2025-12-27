@@ -56,8 +56,22 @@ public class BookDetailsController {
         // przekazanie półek użytkownika do widoku
         if (currentUser != null) {
             User user = userRepository.findByUsername(currentUser.getUsername()).orElseThrow();
+
             List<Bookshelf> userShelves = user.getBookshelves();
             model.addAttribute("userShelves", userShelves);
+
+            String currentShelfName = null;
+
+            for (Bookshelf shelf : userShelves) {
+                boolean contains = shelf.getBooks().stream()
+                        .anyMatch(b -> b.getId().equals(id));
+
+                if (contains) {
+                    currentShelfName = shelf.getName();
+                    break;
+                }
+            }
+            model.addAttribute("currentShelfName", currentShelfName);
         }
 
         return "book-details";

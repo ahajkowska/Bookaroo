@@ -112,6 +112,52 @@
         </div>
     </div>
 
+    <div class="card mb-3 border-warning">
+        <div class="card-header bg-warning text-dark fw-bold">
+            Twoja Biblioteczka
+        </div>
+        <div class="card-body">
+
+            <div th:if="${currentShelfName != null}" class="alert alert-success py-2 mb-3">
+                Ta książka jest na półce: <strong th:text="${currentShelfName}"></strong>
+            </div>
+
+            <form sec:authorize="isAuthenticated()" th:action="@{/bookshelf/add}" method="post">
+                <input type="hidden" name="bookId" th:value="${book.id}"/>
+
+                <label class="form-label small text-muted">
+                    <span th:if="${currentShelfName == null}">Dodaj do półki:</span>
+                    <span th:if="${currentShelfName != null}">Przenieś do:</span>
+                </label>
+
+                <div class="input-group">
+                    <select name="shelfName" class="form-select form-select-sm" required>
+                        <option value="" disabled selected>-- Wybierz --</option>
+                        <option th:each="shelf : ${userShelves}"
+                                th:value="${shelf.name}"
+                                th:text="${shelf.name}"
+                                th:selected="${shelf.name == currentShelfName}"> Nazwa Półki
+                        </option>
+                    </select>
+                    <button class="btn btn-sm btn-dark" type="submit">OK</button>
+                </div>
+            </form>
+
+            <form th:if="${currentShelfName != null}"
+                  th:action="@{/bookshelf/remove}" method="post" class="mt-2">
+                <input type="hidden" name="bookId" th:value="${book.id}"/>
+                <button type="submit" class="btn btn-sm btn-outline-danger w-100"
+                        onclick="return confirm('Czy na pewno usunąć tę książkę z biblioteczki?')">
+                    Usuń z biblioteczki
+                </button>
+            </form>
+
+            <small sec:authorize="!isAuthenticated()" class="d-block mt-2 text-muted">
+                <a href="/login">Zaloguj się</a>, aby zarządzać biblioteczką.
+            </small>
+        </div>
+    </div>
+
     <div class="card mb-5 border-0 shadow-sm" style="background: rgba(255,255,255,0.9); border-radius: 20px;">
         <div class="card-body p-4">
             <h4 class="mb-4" style="color: #654321;">Statystyki Książki</h4>

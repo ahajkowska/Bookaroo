@@ -46,4 +46,51 @@ public class BookshelfService {
             bookshelfRepository.save(shelf);
         }
     }
+
+    @Transactional
+    public void addOrMoveBook(UUID userId, UUID bookId, String targetShelfName) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new ResourceNotFoundException("Book", "id", bookId));
+
+        // znalezienie docelowej półki
+        Bookshelf targetShelf = user.getBookshelves().stream()
+                .filter(s -> s.getName().equalsIgnoreCase(targetShelfName))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Nie znaleziono półki: " + targetShelfName));
+
+        // czy książka jest już na tej samej półce
+        if (targetShelf.getBooks().contains(book)) {
+            return;
+        }
+
+        // Usuwanie książki ze wszystkich innych półek tego użytkownika
+        for (Bookshelf shelf : user.getBookshelves()) {
+            if (shelf.getBooks().contains(book)) {
+                shelf.getBooks().remove(book);
+                bookshelfRepository.save(shelf);
+            }
+        }
+
+        targetShelf.getBooks().add(book);
+        bookshelfRepository.save(targetShelf);
+    }
+
+    @Transactional
+    public void removeBookFromLibrary(UUID userId, UUID bookId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new ResourceNotFoundException("Book", "id", bookId));
+
+        for (Bookshelf shelf : user.getBookshelves()) {
+            if (shelf.getBooks().contains(book)) {
+                shelf.getBooks().remove(book);
+                bookshelfRepository.save(shelf);
+            }
+        }
+    }
 }

@@ -100,7 +100,6 @@
         .section-divider { border: 0; height: 3px; background: linear-gradient(to right, transparent, var(--kangaroo-tan), transparent); margin: 2rem 0; }
 
         .library-title { color: var(--kangaroo-dark); font-weight: bold; font-size: 2rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.5); }
-        .library-title::before { content: '\1F998'; font-size: 2.5rem; animation: hop 2s ease-in-out infinite; }
 
         .accordion { border-radius: 20px; overflow: hidden; box-shadow: 0 8px 20px rgba(101, 67, 33, 0.15); }
         .accordion-item { border: none; border-bottom: 2px solid var(--kangaroo-cream); background: transparent; }
@@ -261,7 +260,7 @@
     <hr class="section-divider">
 
     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
-        <h3 class="library-title mb-0">📚 Biblioteczka</h3>
+        <h3 class="library-title mb-0">Biblioteczka</h3>
 
         <button th:if="${isOwner}"
                 class="btn btn-sm btn-outline-dark fw-bold"
@@ -292,6 +291,13 @@
                                 <span class="text-muted ms-2" th:text="${book.author != null ? book.author.name + ' ' + book.author.surname : 'Autor nieznany'}">Autor</span>
                             </div>
                             <span class="badge badge-rating" th:text="${book.averageRating}">Rating</span>
+
+                            <form th:if="${isOwner}" th:action="@{/bookshelf/remove}" method="post" style="margin: 0;">
+                                <input type="hidden" name="bookId" th:value="${book.id}"/>
+                                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="Usuń z półki"
+                                        onclick="return confirm('Usunąć tę książkę z półki?')">
+                                    &times; </button>
+                            </form>
                         </li>
                     </ul>
 
