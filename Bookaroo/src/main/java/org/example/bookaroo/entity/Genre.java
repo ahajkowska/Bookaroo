@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,6 +23,6 @@ public class Genre {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @OneToMany(mappedBy = "genre")
-    private List<Book> books;
+    @ManyToMany(mappedBy = "genres")
+    private List<Book> books = new ArrayList<>();
 }

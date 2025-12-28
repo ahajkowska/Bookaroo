@@ -109,6 +109,12 @@
         <div class="mt-4">
             <span class="badge bg-secondary rounded-pill p-2" th:text="${'Rok wydania: ' + book.publicationYear}">2024</span>
             <span class="badge bg-dark rounded-pill p-2" th:text="${'ISBN: ' + book.isbn}">ISBN</span>
+            <span th:each="genre : ${book.genres}"
+                  th:text="${genre.name}"
+                  class="badge rounded-pill p-2 ms-1"
+                  style="background-color: var(--bush-green); color: white;">
+                  Gatunek
+            </span>
         </div>
     </div>
 

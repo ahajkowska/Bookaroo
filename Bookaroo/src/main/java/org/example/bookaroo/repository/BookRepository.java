@@ -26,10 +26,10 @@ public interface BookRepository extends JpaRepository<Book, UUID> {
     // z paginacją
     Page<Book> findByAuthor(Author author, Pageable pageable);
     
-    List<Book> findByGenre(Genre genre);
+    List<Book> findByGenres(Genre genre);
     
     // z paginacją
-    Page<Book> findByGenre(Genre genre, Pageable pageable);
+    Page<Book> findByGenres(Genre genre, Pageable pageable);
     
     List<Book> findTop10ByOrderByAverageRatingDesc();
     

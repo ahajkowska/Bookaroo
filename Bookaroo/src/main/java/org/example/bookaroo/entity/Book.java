@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,14 +26,8 @@ public class Book {
     @Column(name="description")
     private String description;
 
-    @Column(name="cover_image_url")
-    private String coverImageUrl;
-
     @Column(name="publication_year")
     private Integer publicationYear;
-
-    @Column(name="language")
-    private String language;
 
     @Column(name="average_rating")
     private Double averageRating;
@@ -45,9 +40,13 @@ public class Book {
     @JoinColumn(name="author_id", nullable=false)
     private Author author;
 
-    @ManyToOne
-    @JoinColumn(name="genre_id")
-    private Genre genre;
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "book_genres",
+            joinColumns = @JoinColumn(name = "book_id"),
+            inverseJoinColumns = @JoinColumn(name = "genre_id")
+    )
+    private List<Genre> genres = new ArrayList<>();
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL)
     private List<Review> reviews;

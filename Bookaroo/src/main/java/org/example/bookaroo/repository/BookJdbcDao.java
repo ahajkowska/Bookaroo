@@ -1,6 +1,8 @@
 package org.example.bookaroo.repository;
 
+import jakarta.transaction.Transactional;
 import org.example.bookaroo.entity.Book;
+import org.example.bookaroo.entity.Genre;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -29,9 +31,7 @@ public class BookJdbcDao {
             book.setTitle(rs.getString("title"));
             book.setIsbn(rs.getString("isbn"));
             book.setDescription(rs.getString("description"));
-            book.setCoverImageUrl(rs.getString("cover_image_url"));
             book.setPublicationYear(rs.getInt("publication_year"));
-            book.setLanguage(rs.getString("language"));
             book.setAverageRating(rs.getDouble("average_rating"));
             book.setTotalReviews(rs.getInt("total_reviews"));
             return book;
@@ -71,7 +71,8 @@ public class BookJdbcDao {
     public List<Book> findBooksByGenre(String genreName) {
         String sql = """
             SELECT b.* FROM books b
-            JOIN genres g ON b.genre_id = g.id
+            JOIN book_genres bg ON b.id = bg.book_id
+            JOIN genres g ON bg.genre_id = g.id
             WHERE LOWER(g.name) = LOWER(?)
             ORDER BY b.average_rating DESC
         """;
@@ -130,23 +131,17 @@ public class BookJdbcDao {
         return distribution;
     }
 
-    // SELECT - liczba książek
-    public Integer getTotalBookCount() {
-        String sql = "SELECT COUNT(*) FROM books";
-        return jdbcTemplate.queryForObject(sql, Integer.class);
-    }
-
     // SELECT - liczba książek według gatunku
     public Map<String, Integer> getBookCountByGenre() {
         String sql = """
-            SELECT g.name, COUNT(b.id) as count
+            SELECT g.name, COUNT(bg.book_id) as count
             FROM genres g
-            LEFT JOIN books b ON g.id = b.genre_id
+            LEFT JOIN book_genres bg ON g.id = bg.genre_id
             GROUP BY g.name
             ORDER BY count DESC
         """;
         List<Map<String, Object>> results = jdbcTemplate.queryForList(sql);
-        
+
         Map<String, Integer> genreCounts = new java.util.HashMap<>();
         for (Map<String, Object> row : results) {
             genreCounts.put((String) row.get("name"), ((Number) row.get("count")).intValue());
@@ -155,26 +150,50 @@ public class BookJdbcDao {
     }
 
     // INSERT - dodaj książkę
+    @Transactional
     public int insertBook(Book book) {
-        String sql = """
+        // 1. Insert do tabeli books (bez genre_id)
+        String sqlBook = """
             INSERT INTO books (id, title, isbn, description, cover_image_url, 
                                publication_year, language, average_rating, total_reviews, 
-                               author_id, genre_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                               author_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
-        return jdbcTemplate.update(sql,
+
+        int result = jdbcTemplate.update(sqlBook,
                 book.getId().toString(),
                 book.getTitle(),
                 book.getIsbn(),
                 book.getDescription(),
-                book.getCoverImageUrl(),
                 book.getPublicationYear(),
-                book.getLanguage(),
                 book.getAverageRating(),
                 book.getTotalReviews(),
-                book.getAuthor() != null ? book.getAuthor().getId().toString() : null,
-                book.getGenre() != null ? book.getGenre().getId().toString() : null
+                book.getAuthor() != null ? book.getAuthor().getId().toString() : null
         );
+
+        if (book.getGenres() != null && !book.getGenres().isEmpty()) {
+            String sqlGenre = "INSERT INTO book_genres (book_id, genre_id) VALUES (?, ?)";
+            for (Genre genre : book.getGenres()) {
+                jdbcTemplate.update(sqlGenre, book.getId().toString(), genre.getId().toString());
+            }
+        }
+
+        return result;
+    }
+
+    @Transactional
+    public void updateBookGenres(UUID bookId, List<Genre> newGenres) {
+        // Najpierw usuwamy stare powiązania
+        String deleteSql = "DELETE FROM book_genres WHERE book_id = ?";
+        jdbcTemplate.update(deleteSql, bookId.toString());
+
+        // Dodajemy nowe
+        if (newGenres != null && !newGenres.isEmpty()) {
+            String insertSql = "INSERT INTO book_genres (book_id, genre_id) VALUES (?, ?)";
+            for (Genre genre : newGenres) {
+                jdbcTemplate.update(insertSql, bookId.toString(), genre.getId().toString());
+            }
+        }
     }
 
     // UPDATE - aktualizowanie średniej oceny książki
