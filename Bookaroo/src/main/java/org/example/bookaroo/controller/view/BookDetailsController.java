@@ -1,12 +1,9 @@
 package org.example.bookaroo.controller.view;
 
 import org.example.bookaroo.entity.Book;
-import org.example.bookaroo.entity.Bookshelf;
 import org.example.bookaroo.entity.Review;
-import org.example.bookaroo.entity.User;
-import org.example.bookaroo.repository.BookRepository;
-import org.example.bookaroo.repository.StatisticsRepository;
-import org.example.bookaroo.repository.UserRepository;
+import org.example.bookaroo.service.BookService;
+import org.example.bookaroo.service.BookshelfService;
 import org.example.bookaroo.service.CustomUserDetailsService;
 import org.example.bookaroo.service.ReviewService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,59 +16,49 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Controller
 public class BookDetailsController {
 
-    private final BookRepository bookRepository;
+    private final BookService bookService;
     private final ReviewService reviewService;
-    private final StatisticsRepository statisticsRepository;
-    private final UserRepository userRepository;
+    private final BookshelfService bookshelfService;
 
-    public BookDetailsController(BookRepository bookRepository,
-                                 ReviewService reviewService,
-                                 StatisticsRepository statisticsRepository,
-                                 UserRepository userRepository) {
-        this.bookRepository = bookRepository;
+    public BookDetailsController(BookService bookService, ReviewService reviewService, BookshelfService bookshelfService) {
+        this.bookService = bookService;
         this.reviewService = reviewService;
-        this.statisticsRepository = statisticsRepository;
-        this.userRepository = userRepository;
+        this.bookshelfService = bookshelfService;
     }
 
-    // szczegóły książki + recenzje + lista półek
     @GetMapping("/book/{id}")
     public String showBookDetails(@PathVariable UUID id, Model model,
                                   @AuthenticationPrincipal UserDetails currentUser) {
-        Book book = bookRepository.findById(id)
+        Book book = bookService.findById(id)
                 .orElseThrow(() -> new RuntimeException("Book not found"));
 
         List<Review> reviews = reviewService.getReviewsForBook(id);
-        var stats = statisticsRepository.getBookStats(id);
+
+        Map<String, Object> stats = bookService.getBookStatistics(id);
 
         model.addAttribute("stats", stats);
         model.addAttribute("book", book);
         model.addAttribute("reviews", reviews);
 
-        // przekazanie półek użytkownika do widoku
+        // obsługa półek użytkownika
         if (currentUser != null) {
-            User user = userRepository.findByUsername(currentUser.getUsername()).orElseThrow();
+            if (currentUser instanceof CustomUserDetailsService.BookarooUserDetails) {
+                UUID userId = ((CustomUserDetailsService.BookarooUserDetails) currentUser).getId();
 
-            List<Bookshelf> userShelves = user.getBookshelves();
-            model.addAttribute("userShelves", userShelves);
+                // pobranie listy półek
+                var userShelves = bookshelfService.getUserShelves(userId);
+                model.addAttribute("userShelves", userShelves);
 
-            String currentShelfName = null;
-
-            for (Bookshelf shelf : userShelves) {
-                boolean contains = shelf.getBooks().stream()
-                        .anyMatch(b -> b.getId().equals(id));
-
-                if (contains) {
-                    currentShelfName = shelf.getName();
-                    break;
-                }
+                // na której półce jest książka
+                String currentShelfName = bookshelfService.getShelfNameForBook(userId, id);
+                model.addAttribute("currentShelfName", currentShelfName);
             }
-            model.addAttribute("currentShelfName", currentShelfName);
         }
 
         return "book-details";

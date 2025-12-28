@@ -7,7 +7,7 @@ import org.example.bookaroo.dto.mapper.BookMapper;
 import org.example.bookaroo.entity.Author;
 import org.example.bookaroo.entity.Book;
 import org.example.bookaroo.repository.AuthorRepository;
-import org.example.bookaroo.repository.BookRepository;
+import org.example.bookaroo.service.BookService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,18 +15,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/books")
 @Tag(name = "Book Management", description = "Endpointy do zarządzania książkami")
 public class BookRestController {
 
-    private final BookRepository bookRepository;
+    private final BookService bookService;
     private final AuthorRepository authorRepository;
 
-    public BookRestController(BookRepository bookRepository, AuthorRepository authorRepository) {
-        this.bookRepository = bookRepository;
+    public BookRestController(BookService bookService, AuthorRepository authorRepository) {
+        this.bookService = bookService;
         this.authorRepository = authorRepository;
     }
 
@@ -37,17 +39,15 @@ public class BookRestController {
             @RequestParam(defaultValue = "10") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Book> bookPage = bookRepository.findAll(pageable);
+        Page<Book> bookPage = bookService.findAll(pageable);
 
-        Page<BookDTO> dtoPage = bookPage.map(BookMapper::toDto);
-
-        return ResponseEntity.ok(dtoPage);
+        return ResponseEntity.ok(bookPage.map(BookMapper::toDto));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Pobierz książkę po ID", description = "Zwraca szczegóły pojedynczej książki")
     public ResponseEntity<BookDTO> getBookById(@PathVariable UUID id) {
-        return bookRepository.findById(id)
+        return bookService.findById(id)
                 .map(BookMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
@@ -74,15 +74,14 @@ public class BookRestController {
         book.setPublicationYear(bookDto.publicationYear());
         book.setAuthor(author);
 
-        Book savedBook = bookRepository.save(book);
-
+        Book savedBook = bookService.save(book);
         return ResponseEntity.status(HttpStatus.CREATED).body(BookMapper.toDto(savedBook));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Zaktualizuj książkę", description = "Aktualizuje dane istniejącej książki")
     public ResponseEntity<BookDTO> updateBook(@PathVariable UUID id, @RequestBody BookDTO bookDto) {
-        return bookRepository.findById(id)
+        return bookService.findById(id)
                 .map(existingBook -> {
                     existingBook.setTitle(bookDto.title());
                     existingBook.setIsbn(bookDto.isbn());
@@ -94,8 +93,7 @@ public class BookRestController {
                                 .ifPresent(existingBook::setAuthor);
                     }
 
-                    Book updatedBook = bookRepository.save(existingBook);
-                    // ZMIANA: Używamy Mappera
+                    Book updatedBook = bookService.save(existingBook);
                     return ResponseEntity.ok(BookMapper.toDto(updatedBook));
                 })
                 .orElse(ResponseEntity.notFound().build());
@@ -104,12 +102,80 @@ public class BookRestController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Usuń książkę", description = "Usuwa książkę (na stałe)")
     public ResponseEntity<Void> deleteBook(@PathVariable UUID id) {
-        if (!bookRepository.existsById(id)) {
+        if (!bookService.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
 
-        bookRepository.deleteById(id);
+        bookService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
+    // wyszukiwanie (custom query + paginacja)
+    @GetMapping("/search")
+    @Operation(summary = "Wyszukaj książki", description = "Szuka po tytule, ISBN lub autorze")
+    public ResponseEntity<Page<BookDTO>> searchBooks(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Book> foundBooks = bookService.searchBooks(query, pageable);
+        return ResponseEntity.ok(foundBooks.map(BookMapper::toDto));
+    }
+
+    // filtrowanie po autorze
+    @GetMapping("/author/{authorId}")
+    @Operation(summary = "Książki autora", description = "Pobiera książki autora")
+    public ResponseEntity<Page<BookDTO>> getBooksByAuthor(
+            @PathVariable UUID authorId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return authorRepository.findById(authorId)
+                .map(author -> {
+                    Pageable pageable = PageRequest.of(page, size);
+                    Page<Book> bookPage = bookService.findByAuthor(author, pageable);
+                    return ResponseEntity.ok(bookPage.map(BookMapper::toDto));
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // filtrowanie po Gatunku
+    @GetMapping("/genre/{genreId}")
+    @Operation(summary = "Książki z gatunku", description = "Pobiera książki z danego gatunku")
+    public ResponseEntity<Page<BookDTO>> getBooksByGenre(
+            @PathVariable UUID genreId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Book> bookPage = bookService.findByGenresId(genreId, pageable);
+
+        return ResponseEntity.ok(bookPage.map(BookMapper::toDto));
+    }
+
+    @GetMapping("/top")
+    @Operation(summary = "Najlepiej oceniane książki", description = "Pobiera najlepiej oceniane książki")
+    public ResponseEntity<List<BookDTO>> getTopBooks(@RequestParam(defaultValue = "5") int limit) {
+        List<Book> books = bookService.getTopRatedBooksViaSql(limit);
+
+        List<BookDTO> dtos = books.stream()
+                .map(BookMapper::toDto)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);
+    }
+
+    @GetMapping("/year/{year}")
+    @Operation(summary = "Książki z danego roku", description = "Pobiera książki z danego roku")
+    public ResponseEntity<List<BookDTO>> getBooksByYear(@PathVariable int year) {
+        List<Book> books = bookService.getBooksByYearViaSql(year);
+
+        List<BookDTO> dtos = books.stream()
+                .map(BookMapper::toDto)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);
+    }
 }

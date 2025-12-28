@@ -26,7 +26,6 @@ public class StatisticsRepository {
         try {
             int currentYear = java.time.LocalDate.now().getYear();
 
-            // Uwaga: YEAR() działa w H2/MySQL. W PostgreSQL użyj: EXTRACT(YEAR FROM bb.added_at)
             String sqlRead = """
                 SELECT COUNT(*) 
                 FROM bookshelf_books bb 

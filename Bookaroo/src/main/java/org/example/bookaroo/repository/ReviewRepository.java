@@ -1,6 +1,5 @@
 package org.example.bookaroo.repository;
 
-import org.example.bookaroo.entity.Book;
 import org.example.bookaroo.entity.Review;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
