@@ -18,11 +18,13 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
+    private final BookService bookService;
 
-    public ReviewService(ReviewRepository reviewRepository, BookRepository bookRepository, UserRepository userRepository) {
+    public ReviewService(ReviewRepository reviewRepository, BookRepository bookRepository, UserRepository userRepository, BookService bookService) {
         this.reviewRepository = reviewRepository;
         this.bookRepository = bookRepository;
         this.userRepository = userRepository;
+        this.bookService = bookService;
     }
 
     @Transactional
@@ -31,7 +33,16 @@ public class ReviewService {
         Book book = bookRepository.findById(bookId).orElseThrow();
 
         Review review = new Review(rating, content, user, book);
-        reviewRepository.save(review);
+        reviewRepository.saveAndFlush(review);
+
+        List<Review> reviews = reviewRepository.findByBookIdOrderByCreatedAtDesc(bookId);
+
+        double newAverage = reviews.stream()
+                .mapToInt(Review::getRating)
+                .average()
+                .orElse(0.0);
+
+        bookService.updateBookRating(bookId, newAverage);
     }
 
     public List<Review> getReviewsForBook(UUID bookId) {
