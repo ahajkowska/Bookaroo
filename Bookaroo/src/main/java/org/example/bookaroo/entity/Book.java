@@ -52,6 +52,4 @@ public class Book {
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL)
     private List<Review> reviews;
 
-    @ManyToMany(mappedBy = "books")
-    private List<Bookshelf> bookshelves;
 }

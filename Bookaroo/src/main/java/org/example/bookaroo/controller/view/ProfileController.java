@@ -165,7 +165,7 @@ public class ProfileController {
                                     .anyMatch(b -> b.getId().equals(book.getId()));
 
                             if (!alreadyOnShelf) {
-                                shelf.getBooks().add(book);
+                                shelf.addBook(book);
                             }
                         });
                     }
@@ -209,6 +209,23 @@ public class ProfileController {
         }
 
         User user = userRepository.findByUsername(currentUser.getUsername()).orElseThrow();
+        return "redirect:/profile/" + user.getId();
+    }
+
+    @PostMapping("/profile/challenge/update")
+    public String updateChallenge(@AuthenticationPrincipal UserDetails currentUser,
+                                  @RequestParam(name = "target", required = false) Integer target) {
+
+        User user = userRepository.findByUsername(currentUser.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "user", currentUser.getUsername()));
+
+        if (target == null || target < 1) { // uznajemy, że user rezygnuje
+            user.setReadingChallengeTarget(null);
+        } else {
+            user.setReadingChallengeTarget(target);
+        }
+
+        userRepository.save(user);
         return "redirect:/profile/" + user.getId();
     }
 }

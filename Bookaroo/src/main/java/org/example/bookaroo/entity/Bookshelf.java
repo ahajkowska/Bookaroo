@@ -4,8 +4,10 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -25,12 +27,20 @@ public class Bookshelf {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user; // właściciel
+    
+    @OneToMany(mappedBy = "bookshelf", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BookshelfBook> items = new ArrayList<>();
 
-    @ManyToMany
-    @JoinTable(
-            name = "bookshelf_books",
-            joinColumns = @JoinColumn(name = "bookshelf_id"),
-            inverseJoinColumns = @JoinColumn(name = "book_id")
-    )
-    private List<Book> books;
+    // zwraca listę książek
+    public List<Book> getBooks() {
+        return items.stream()
+                .map(BookshelfBook::getBook)
+                .collect(Collectors.toList());
+    }
+
+    // metoda do dodawania (potrzebna np. przy imporcie)
+    public void addBook(Book book) {
+        BookshelfBook item = new BookshelfBook(this, book);
+        items.add(item);
+    }
 }

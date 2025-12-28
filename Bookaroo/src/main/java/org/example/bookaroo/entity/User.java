@@ -49,6 +49,9 @@ public class User implements UserDetails {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "reading_challenge_target")
+    private Integer readingChallengeTarget;
+
     // Relacje
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Review> givenReviews;

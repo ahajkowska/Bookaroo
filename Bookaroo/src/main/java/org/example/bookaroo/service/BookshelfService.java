@@ -2,9 +2,11 @@ package org.example.bookaroo.service;
 
 import org.example.bookaroo.entity.Book;
 import org.example.bookaroo.entity.Bookshelf;
+import org.example.bookaroo.entity.BookshelfBook;
 import org.example.bookaroo.entity.User;
 import org.example.bookaroo.exception.ResourceNotFoundException; // Użyj swojego wyjątku
 import org.example.bookaroo.repository.BookRepository;
+import org.example.bookaroo.repository.BookshelfBookRepository;
 import org.example.bookaroo.repository.BookshelfRepository;
 import org.example.bookaroo.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -18,33 +20,13 @@ public class BookshelfService {
     private final BookshelfRepository bookshelfRepository;
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
+    private final BookshelfBookRepository bookshelfBookRepository;
 
-    public BookshelfService(BookshelfRepository bookshelfRepository, BookRepository bookRepository, UserRepository userRepository) {
+    public BookshelfService(BookshelfRepository bookshelfRepository, BookRepository bookRepository, UserRepository userRepository, BookshelfBookRepository bookshelfBookRepository) {
         this.bookshelfRepository = bookshelfRepository;
         this.bookRepository = bookRepository;
         this.userRepository = userRepository;
-    }
-
-    @Transactional
-    public void addBookToShelfByName(UUID userId, UUID bookId, String shelfName) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
-
-        Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new ResourceNotFoundException("Book", "id", bookId));
-
-        Bookshelf shelf = bookshelfRepository.findByUserAndName(user, shelfName)
-                .orElseGet(() -> {
-                    Bookshelf newShelf = new Bookshelf();
-                    newShelf.setName(shelfName);
-                    newShelf.setUser(user);
-                    return bookshelfRepository.save(newShelf);
-                });
-
-        if (!shelf.getBooks().contains(book)) {
-            shelf.getBooks().add(book);
-            bookshelfRepository.save(shelf);
-        }
+        this.bookshelfBookRepository = bookshelfBookRepository;
     }
 
     @Transactional
@@ -68,14 +50,11 @@ public class BookshelfService {
 
         // Usuwanie książki ze wszystkich innych półek tego użytkownika
         for (Bookshelf shelf : user.getBookshelves()) {
-            if (shelf.getBooks().contains(book)) {
-                shelf.getBooks().remove(book);
-                bookshelfRepository.save(shelf);
-            }
+            bookshelfBookRepository.deleteByBookshelfIdAndBookId(shelf.getId(), book.getId());
         }
 
-        targetShelf.getBooks().add(book);
-        bookshelfRepository.save(targetShelf);
+        BookshelfBook newItem = new BookshelfBook(targetShelf, book);
+        bookshelfBookRepository.save(newItem);
     }
 
     @Transactional
@@ -87,10 +66,7 @@ public class BookshelfService {
                 .orElseThrow(() -> new ResourceNotFoundException("Book", "id", bookId));
 
         for (Bookshelf shelf : user.getBookshelves()) {
-            if (shelf.getBooks().contains(book)) {
-                shelf.getBooks().remove(book);
-                bookshelfRepository.save(shelf);
-            }
+            bookshelfBookRepository.deleteByBookshelfIdAndBookId(shelf.getId(), bookId);
         }
     }
 }
