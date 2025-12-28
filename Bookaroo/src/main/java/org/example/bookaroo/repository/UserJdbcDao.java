@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.sql.ResultSet;
 import java. sql.SQLException;
 import java. util.List;
-import java. util.Map;
 import java.util.UUID;
 
 @Repository
@@ -47,8 +46,6 @@ public class UserJdbcDao {
         String sql = "SELECT * FROM users WHERE role = ? ORDER BY username ASC";
         return jdbcTemplate.query(sql, userRowMapper, role);
     }
-
-
 
     // SELECT - agregacja (count)
     public Integer getTotalUserCount() {

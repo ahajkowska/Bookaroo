@@ -27,14 +27,12 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final BookRepository bookRepository;
-    private final BookshelfRepository bookshelfRepository;
+    private final BookshelfService bookshelfService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, BookRepository bookRepository, BookshelfRepository bookshelfRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, BookshelfService bookshelfService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.bookRepository = bookRepository;
-        this.bookshelfRepository = bookshelfRepository;
+        this.bookshelfService = bookshelfService;
     }
 
     // GET ALL - z paginacją
@@ -42,14 +40,6 @@ public class UserService {
     public Page<UserDTO> getAllUsers(Pageable pageable) {
         return userRepository.findAll(pageable)
                 .map(this::convertToDTO);
-    }
-
-    // GET ALL - bez paginacji
-    @Transactional(readOnly = true)
-    public List<UserDTO> getAllUsers() {
-        return userRepository. findAll(). stream()
-                .map(this::convertToDTO)
-                . collect(Collectors.toList());
     }
 
     // GET BY ID
@@ -60,36 +50,20 @@ public class UserService {
         return convertToDTO(user);
     }
 
-    // GET BY USERNAME
-    @Transactional(readOnly = true)
-    public UserDTO getUserByUsername(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
-        return convertToDTO(user);
-    }
-
-    // GET BY EMAIL
-    @Transactional(readOnly = true)
-    public UserDTO getUserByEmail(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
-        return convertToDTO(user);
-    }
-
     // CREATE USER
     @Transactional
     public UserDTO createUser(CreateUserDTO createUserDTO) {
-        // Sprawdź, czy email już istnieje
+        // czy email już istnieje
         if (userRepository.existsByEmail(createUserDTO.getEmail())) {
             throw new UserAlreadyExistsException("Email " + createUserDTO.getEmail() + " jest już zajęty");
         }
 
-        // Sprawdź, czy username już istnieje
+        // czy username już istnieje
         if (userRepository.existsByUsername(createUserDTO.getUsername())) {
             throw new UserAlreadyExistsException("Username " + createUserDTO.getUsername() + " jest już zajęty");
         }
 
-        // Stwórz nowego użytkownika
+        // stwórz nowego użytkownika
         User user = new User();
         user.setUsername(createUserDTO.getUsername());
         user.setEmail(createUserDTO.getEmail());
@@ -98,13 +72,8 @@ public class UserService {
         user.setAvatar(createUserDTO.getAvatar());
         user.setBio(createUserDTO.getBio());
 
-        // Generowanie domyślnych półek
-        List<Bookshelf> defaultShelves = new ArrayList<>();
-        defaultShelves.add(createShelf(user, "Przeczytane"));
-        defaultShelves.add(createShelf(user, "Chcę przeczytać"));
-        defaultShelves.add(createShelf(user, "Teraz czytam"));
-
-        user.setBookshelves(defaultShelves);
+        // generowanie domyślnych półek
+        user.setBookshelves(bookshelfService.generateDefaultShelves(user));
 
         User savedUser = userRepository.save(user);
         return convertToDTO(savedUser);
@@ -116,9 +85,8 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
 
-        // Aktualizuj tylko pola, które przyszły (nie są null)
         if (updateUserDTO.getEmail() != null) {
-            // Sprawdź, czy nowy email nie jest już zajęty przez innego użytkownika
+            // czy nowy email nie jest już zajęty przez innego użytkownika
             userRepository.findByEmail(updateUserDTO.getEmail())
                     .ifPresent(existingUser -> {
                         if (!existingUser.getId().equals(id)) {
@@ -160,60 +128,6 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional
-    public void addBookToShelf(UUID userId, UUID shelfId, UUID bookId) {
-        Bookshelf shelf = bookshelfRepository.findById(shelfId)
-                .orElseThrow(() -> new ResourceNotFoundException("Bookshelf", "id", shelfId));
-
-        if (!shelf.getUser().getId().equals(userId)) {
-            throw new IllegalArgumentException("Nie masz uprawnień do edycji tej półki");
-        }
-
-        Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new ResourceNotFoundException("Book", "id", bookId));
-
-        if (shelf.getBooks().contains(book)) {
-            throw new IllegalStateException("Ta książka jest już na tej półce");
-        }
-
-        shelf.getBooks().add(book);
-        bookshelfRepository.save(shelf);
-    }
-
-    @Transactional
-    public void removeBookFromShelf(UUID userId, UUID shelfId, UUID bookId) {
-        Bookshelf shelf = bookshelfRepository.findById(shelfId)
-                .orElseThrow(() -> new ResourceNotFoundException("Bookshelf", "id", shelfId));
-
-        if (!shelf.getUser().getId().equals(userId)) {
-            throw new IllegalArgumentException("Nie masz uprawnień do tej półki");
-        }
-
-        Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new ResourceNotFoundException("Book", "id", bookId));
-
-        shelf.getBooks().remove(book);
-        bookshelfRepository.save(shelf);
-    }
-
-    @Transactional
-    public void createCustomShelf(UUID userId, String shelfName) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
-
-        Bookshelf shelf = new Bookshelf();
-        shelf.setName(shelfName);
-        shelf.setIsDefault(false);
-        shelf.setUser(user);
-
-        bookshelfRepository.save(shelf);
-    }
-
-    @Transactional(readOnly = true)
-    public List<Bookshelf> getUserShelves(UUID userId) {
-        return bookshelfRepository.findAllByUserId(userId);
-    }
-
     // f. pomocnicza --- Konwersja Entity -> DTO
     private UserDTO convertToDTO(User user) {
         return new UserDTO(
@@ -227,28 +141,4 @@ public class UserService {
         );
     }
 
-    private Bookshelf createShelf(User user, String name) {
-        Bookshelf shelf = new Bookshelf();
-        shelf.setName(name);
-        shelf.setIsDefault(true);
-        shelf.setUser(user);
-        return shelf;
-    }
-
-    @Transactional
-    public void createShelf(String username, String shelfName) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
-
-        boolean exists = user.getBookshelves().stream()
-                .anyMatch(s -> s.getName().equalsIgnoreCase(shelfName));
-
-        if (!exists) {
-            Bookshelf shelf = new Bookshelf();
-            shelf.setName(shelfName);
-            shelf.setUser(user);
-            shelf.setIsDefault(false); // własna półka
-            bookshelfRepository.save(shelf);
-        }
-    }
 }

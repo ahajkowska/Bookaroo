@@ -12,6 +12,7 @@ import org.example.bookaroo.dto.CreateUserDTO;
 import org.example.bookaroo.dto.UpdateUserDTO;
 import org.example.bookaroo.dto.UserDTO;
 import org.example.bookaroo.exception.ErrorResponse;
+import org.example.bookaroo.service.BookshelfService;
 import org.example.bookaroo.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,9 +32,11 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final BookshelfService bookshelfService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, BookshelfService bookshelfService) {
         this.userService = userService;
+        this.bookshelfService = bookshelfService;
     }
 
     @GetMapping
@@ -130,7 +133,7 @@ public class UserController {
     public ResponseEntity<Void> addBookToShelf(@PathVariable UUID userId,
                                                @PathVariable UUID shelfId,
                                                @PathVariable UUID bookId) {
-        userService.addBookToShelf(userId, shelfId, bookId);
+        bookshelfService.addOrMoveBook(userId, shelfId, bookId);
         return ResponseEntity.ok().build();
     }
 }
