@@ -69,6 +69,14 @@ public class BookshelfService {
         return bookshelfRepository.findAllByUserId(userId);
     }
 
+    @Transactional(readOnly = true)
+    public List<Bookshelf> getUserShelvesByUsername(String username) {
+        // 1. Szukamy użytkownika po nazwie (żeby zdobyć jego ID)
+        return userRepository.findByUsername(username)
+                .map(user -> bookshelfRepository.findAllByUserId(user.getId())) // Jeśli user jest -> pobierz półki
+                .orElseGet(java.util.Collections::emptyList); // Jeśli user nie istnieje -> zwróć pustą listę
+    }
+
     // na której półce znajduje się dana książka (nazwa półki lub null)
     public String getShelfNameForBook(UUID userId, UUID bookId) {
         List<Bookshelf> userShelves = getUserShelves(userId);

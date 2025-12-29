@@ -48,4 +48,13 @@ public class ReviewService {
     public List<Review> getReviewsForBook(UUID bookId) {
         return reviewRepository.findByBookIdOrderByCreatedAtDesc(bookId);
     }
+
+    public List<Review> getAllReviews() {
+        return reviewRepository.findAll();
+    }
+
+    @Transactional
+    public void deleteReview(UUID id) {
+        reviewRepository.deleteById(id);
+    }
 }
