@@ -2,10 +2,8 @@ package org.example.bookaroo.controller.view;
 
 import org.example.bookaroo.entity.Book;
 import org.example.bookaroo.entity.Bookshelf;
-import org.example.bookaroo.entity.User;
-import org.example.bookaroo.repository.BookRepository;
-import org.example.bookaroo.repository.StatisticsRepository;
-import org.example.bookaroo.repository.UserRepository;
+import org.example.bookaroo.service.BookService;
+import org.example.bookaroo.service.BookshelfService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -20,16 +18,13 @@ import java.util.UUID;
 @Controller
 public class ViewController {
 
-    private final BookRepository bookRepository;
-    private final StatisticsRepository statisticsRepository;
-    private final UserRepository userRepository;
+    private final BookService bookService;
+    private final BookshelfService bookshelfService;
 
-    public ViewController(BookRepository bookRepository,
-                          StatisticsRepository statisticsRepository,
-                          UserRepository userRepository) {
-        this.bookRepository = bookRepository;
-        this.statisticsRepository = statisticsRepository;
-        this.userRepository = userRepository;
+    public ViewController(BookService bookService,
+                          BookshelfService bookshelfService) {
+        this.bookService = bookService;
+        this.bookshelfService = bookshelfService;
     }
 
     // strona główna z listą książek
@@ -41,23 +36,21 @@ public class ViewController {
         // logika wyszukiwania książek
         List<Book> books;
         if (search != null && !search.isBlank()) {
-            books = bookRepository.searchBooks(search);
+            books = bookService.searchBooksList(search);
             model.addAttribute("searchQuery", search);
         } else {
-            books = bookRepository.findAll();
+            books = bookService.findAllList();
         }
 
         // statystyki ocen
-        Map<UUID, Double> ratings = statisticsRepository.getAllBookAverageRatings();
+        Map<UUID, Double> ratings = bookService.getAllBookAverageRatings();
         model.addAttribute("ratings", ratings);
         model.addAttribute("books", books);
 
         // przekazanie listy półek zalogowanego użytkownika
         if (currentUser != null) {
-            User user = userRepository.findByUsername(currentUser.getUsername()).orElse(null);
-            if (user != null) {
-                model.addAttribute("userShelves", user.getBookshelves());
-            }
+            List<Bookshelf> shelves = bookshelfService.getUserShelvesByUsername(currentUser.getUsername());
+            model.addAttribute("userShelves", shelves);
         }
 
         return "index";

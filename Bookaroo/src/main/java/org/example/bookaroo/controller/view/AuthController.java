@@ -1,4 +1,4 @@
-package org.example.bookaroo.controller;
+package org.example.bookaroo.controller.view;
 
 import jakarta.validation.Valid;
 import org.example.bookaroo.dto.CreateUserDTO;

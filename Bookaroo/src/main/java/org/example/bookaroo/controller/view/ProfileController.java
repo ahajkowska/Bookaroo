@@ -1,14 +1,11 @@
 package org.example.bookaroo.controller.view;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.http.HttpServletResponse;
 import org.example.bookaroo.dto.UserBackupDTO;
-import org.example.bookaroo.entity.Book;
 import org.example.bookaroo.entity.Bookshelf;
 import org.example.bookaroo.entity.User;
-import org.example.bookaroo.exception.ResourceNotFoundException;
 import org.example.bookaroo.repository.*;
-import org.example.bookaroo.service.FileStorageService;
+import org.example.bookaroo.service.BookshelfService;
+import org.example.bookaroo.service.CustomUserDetailsService;
 import org.example.bookaroo.service.UserService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +18,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -30,35 +26,22 @@ import java.util.UUID;
 @Controller
 public class ProfileController {
 
-    private final UserRepository userRepository;
     private final UserService userService;
-    private final StatisticsRepository statisticsRepository;
-    private final FileStorageService fileStorageService;
+    private final BookshelfService bookshelfService;
 
-    // do backupu
-    private final BookshelfRepository bookshelfRepository;
-    private final BookRepository bookRepository;
-    private final ReviewRepository reviewRepository;
-
-    public ProfileController(UserRepository userRepository, UserService userService, StatisticsRepository statisticsRepository, FileStorageService fileStorageService, BookshelfRepository bookshelfRepository, BookRepository bookRepository, ReviewRepository reviewRepository) {
-        this.userRepository = userRepository;
+    public ProfileController(UserService userService, BookshelfService bookshelfService) {
         this.userService = userService;
-        this.statisticsRepository = statisticsRepository;
-        this.fileStorageService = fileStorageService;
-        this.bookshelfRepository = bookshelfRepository;
-        this.bookRepository = bookRepository;
-        this.reviewRepository = reviewRepository;
+        this.bookshelfService = bookshelfService;
     }
 
     // profil użytkownika
     @GetMapping("/profile/{userId}")
     public String showProfile(@PathVariable UUID userId, Model model, @AuthenticationPrincipal UserDetails currentUser) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+        User user = userService.findById(userId);
 
-        List<Bookshelf> shelves = userService.getUserShelves(userId);
+        List<Bookshelf> shelves = bookshelfService.getUserShelves(userId);
 
-        Map<String, Object> stats = statisticsRepository.getUserStats(userId);
+        Map<String, Object> stats = userService.getUserStats(userId);
 
         // czy to właściciel? (edycja i backup)
         boolean isOwner = currentUser != null && currentUser.getUsername().equals(user.getUsername());
@@ -73,8 +56,7 @@ public class ProfileController {
 
     @GetMapping("/profile/edit")
     public String showEditForm(@AuthenticationPrincipal UserDetails currentUser, Model model) {
-        User user = userRepository.findByUsername(currentUser.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userService.findByUsername(currentUser.getUsername());
 
         model.addAttribute("user", user);
         return "profile-edit"; // profile-edit.html
@@ -87,116 +69,39 @@ public class ProfileController {
             @RequestParam("bio") String bio,
             @RequestParam("avatar") MultipartFile avatarFile
     ) {
-        User user = userRepository.findByUsername(currentUser.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        userService.updateUserProfile(currentUser.getUsername(), bio, avatarFile);
 
-        // Aktualizacja BIO
-        user.setBio(bio);
-
-        // Obsługa pliku (jeśli wgrano nowy)
-        if (!avatarFile.isEmpty()) {
-            String avatarUrl = fileStorageService.saveFile(avatarFile);
-            user.setAvatar(avatarUrl);
-        }
-
-        userRepository.save(user);
+        User user = userService.findByUsername(currentUser.getUsername());
 
         return "redirect:/profile/" + user.getId();
     }
 
     @GetMapping("/profile/export")
     public ResponseEntity<UserBackupDTO> exportProfile(@AuthenticationPrincipal UserDetails currentUser) {
-        User user = userRepository.findByUsername(currentUser.getUsername()).orElseThrow();
-
-        var shelfDtos = user.getBookshelves().stream().map(shelf -> new org.example.bookaroo.dto.ShelfBackupDTO(
-                shelf.getName(),
-                shelf.getBooks().stream().map(Book::getIsbn).toList()
-        )).toList();
-
-        var reviewDtos = user.getGivenReviews().stream().map(review -> new org.example.bookaroo.dto.ReviewBackupDTO(
-                review.getBook().getIsbn(),
-                review.getContent(),
-                review.getRating()
-        )).toList();
-
-        UserBackupDTO backupDto = new UserBackupDTO(
-                user.getBio(),
-                user.getAvatar(),
-                shelfDtos,
-                reviewDtos
-        );
+        UserBackupDTO backupDto = userService.exportUserData(currentUser.getUsername());
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=backup_" + user.getUsername() + ".json")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=backup_" + currentUser.getUsername() + ".json")
                 .body(backupDto);
     }
 
     @PostMapping("/profile/import")
-    @Transactional
-    public String importProfile(@AuthenticationPrincipal UserDetails currentUser, @RequestParam("file") MultipartFile file) {
-        if (file.isEmpty()) return "redirect:/";
+    public String importProfile(@AuthenticationPrincipal UserDetails currentUser,
+                                @RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return "redirect:/";
+        }
 
         try {
-            User user = userRepository.findByUsername(currentUser.getUsername()).orElseThrow();
-            UserBackupDTO backupDto = new ObjectMapper().readValue(file.getInputStream(), UserBackupDTO.class);
+            // Delegacja całej logiki do serwisu
+            userService.importUserData(currentUser.getUsername(), file);
 
-            // bio / avatar
-            if (backupDto.bio() != null) user.setBio(backupDto.bio());
-            if (backupDto.avatar() != null) user.setAvatar(backupDto.avatar());
-
-            // półki
-            if (backupDto.shelves() != null) {
-                for (var shelfDto : backupDto.shelves()) {
-                    Bookshelf shelf = user.getBookshelves().stream()
-                            .filter(s -> s.getName().equalsIgnoreCase(shelfDto.name()))
-                            .findFirst()
-                            .orElseGet(() -> {
-                                Bookshelf newShelf = new Bookshelf();
-                                newShelf.setName(shelfDto.name());
-                                newShelf.setUser(user);
-                                newShelf.setIsDefault(false);
-                                user.getBookshelves().add(newShelf);
-                                return bookshelfRepository.save(newShelf);
-                            });
-
-                    for (String isbn : shelfDto.bookIsbns()) {
-                        bookRepository.findByIsbn(isbn).ifPresent(book -> {
-                            boolean alreadyOnShelf = shelf.getBooks().stream()
-                                    .anyMatch(b -> b.getId().equals(book.getId()));
-
-                            if (!alreadyOnShelf) {
-                                shelf.addBook(book);
-                            }
-                        });
-                    }
-                    bookshelfRepository.save(shelf);
-                }
-            }
-
-            // recenzje
-            if (backupDto.reviews() != null) {
-                for (var reviewDto : backupDto.reviews()) {
-                    bookRepository.findByIsbn(reviewDto.bookIsbn()).ifPresent(book -> {
-                        boolean reviewExists = user.getGivenReviews().stream()
-                                .anyMatch(r -> r.getBook().getId().equals(book.getId()));
-
-                        if (!reviewExists) {
-                            org.example.bookaroo.entity.Review review = new org.example.bookaroo.entity.Review();
-                            review.setUser(user);
-                            review.setBook(book);
-                            review.setContent(reviewDto.content());
-                            review.setRating(reviewDto.rating());
-                            reviewRepository.save(review);
-                        }
-                    });
-                }
-            }
-
-            userRepository.save(user);
+            // Pobranie ID tylko do przekierowania
+            User user = userService.findByUsername(currentUser.getUsername());
             return "redirect:/profile/" + user.getId() + "?success=restored";
 
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(); // Warto zalogować błąd (log.error) zamiast printStackTrace
             return "redirect:/?error=import_failed";
         }
     }
@@ -204,28 +109,26 @@ public class ProfileController {
     @PostMapping("/profile/shelves/create")
     public String createShelf(@AuthenticationPrincipal UserDetails currentUser,
                               @RequestParam("name") String name) {
-        if (name != null && !name.trim().isEmpty()) {
-            userService.createShelf(currentUser.getUsername(), name.trim());
+        if (currentUser instanceof CustomUserDetailsService.BookarooUserDetails userDetails) {
+            UUID userId = userDetails.getId();
+
+            if (name != null && !name.trim().isEmpty()) {
+                bookshelfService.createCustomShelf(userId, name.trim());
+            }
+
+            return "redirect:/profile/" + userId;
         }
 
-        User user = userRepository.findByUsername(currentUser.getUsername()).orElseThrow();
-        return "redirect:/profile/" + user.getId();
+        return "redirect:/login";
     }
 
     @PostMapping("/profile/challenge/update")
     public String updateChallenge(@AuthenticationPrincipal UserDetails currentUser,
                                   @RequestParam(name = "target", required = false) Integer target) {
 
-        User user = userRepository.findByUsername(currentUser.getUsername())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "user", currentUser.getUsername()));
+        userService.updateReadingChallenge(currentUser.getUsername(), target);
 
-        if (target == null || target < 1) { // uznajemy, że user rezygnuje
-            user.setReadingChallengeTarget(null);
-        } else {
-            user.setReadingChallengeTarget(target);
-        }
-
-        userRepository.save(user);
+        User user = userService.findByUsername(currentUser.getUsername());
         return "redirect:/profile/" + user.getId();
     }
 }
