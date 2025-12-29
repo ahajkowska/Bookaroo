@@ -24,16 +24,13 @@ public class BookshelfViewController {
     @PostMapping("/bookshelf/add")
     public String addOrMoveBook(
             @RequestParam UUID bookId,
-            @RequestParam String shelfName,
-            @AuthenticationPrincipal UserDetails currentUser,
-            RedirectAttributes redirectAttributes
+            @RequestParam UUID shelfId,
+            @AuthenticationPrincipal UserDetails currentUser
     ) {
         if (currentUser instanceof CustomUserDetailsService.BookarooUserDetails) {
             UUID userId = ((CustomUserDetailsService.BookarooUserDetails) currentUser).getId();
 
-            bookshelfService.addOrMoveBook(userId, bookId, shelfName);
-
-            redirectAttributes.addFlashAttribute("message", "Książka przeniesiona na półkę: " + shelfName);
+            bookshelfService.addOrMoveBook(userId, bookId, shelfId);
         }
         return "redirect:/book/" + bookId;
     }

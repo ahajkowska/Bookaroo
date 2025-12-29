@@ -1,12 +1,10 @@
-package org.example.bookaroo.controller.api;
+package org.example.bookaroo.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.bookaroo.dto.BookDTO;
 import org.example.bookaroo.dto.mapper.BookMapper;
-import org.example.bookaroo.entity.Author;
 import org.example.bookaroo.entity.Book;
-import org.example.bookaroo.repository.AuthorRepository;
 import org.example.bookaroo.service.BookService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/books")
@@ -25,11 +22,9 @@ import java.util.stream.Collectors;
 public class BookRestController {
 
     private final BookService bookService;
-    private final AuthorRepository authorRepository;
 
-    public BookRestController(BookService bookService, AuthorRepository authorRepository) {
+    public BookRestController(BookService bookService) {
         this.bookService = bookService;
-        this.authorRepository = authorRepository;
     }
 
     @GetMapping
@@ -60,51 +55,22 @@ public class BookRestController {
             return ResponseEntity.badRequest().build();
         }
 
-        Author author = authorRepository.findById(bookDto.authorId())
-                .orElse(null);
+        Book savedBook = bookService.createBook(bookDto);
 
-        if (author == null) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        Book book = new Book();
-        book.setTitle(bookDto.title());
-        book.setIsbn(bookDto.isbn());
-        book.setDescription(bookDto.description());
-        book.setPublicationYear(bookDto.publicationYear());
-        book.setAuthor(author);
-
-        Book savedBook = bookService.save(book);
         return ResponseEntity.status(HttpStatus.CREATED).body(BookMapper.toDto(savedBook));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Zaktualizuj książkę", description = "Aktualizuje dane istniejącej książki")
     public ResponseEntity<BookDTO> updateBook(@PathVariable UUID id, @RequestBody BookDTO bookDto) {
-        return bookService.findById(id)
-                .map(existingBook -> {
-                    existingBook.setTitle(bookDto.title());
-                    existingBook.setIsbn(bookDto.isbn());
-                    existingBook.setDescription(bookDto.description());
-                    existingBook.setPublicationYear(bookDto.publicationYear());
+        Book updatedBook = bookService.updateBook(id, bookDto);
 
-                    if (bookDto.authorId() != null) {
-                        authorRepository.findById(bookDto.authorId())
-                                .ifPresent(existingBook::setAuthor);
-                    }
-
-                    Book updatedBook = bookService.save(existingBook);
-                    return ResponseEntity.ok(BookMapper.toDto(updatedBook));
-                })
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(BookMapper.toDto(updatedBook));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Usuń książkę", description = "Usuwa książkę (na stałe)")
     public ResponseEntity<Void> deleteBook(@PathVariable UUID id) {
-        if (!bookService.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
 
         bookService.deleteById(id);
         return ResponseEntity.noContent().build();
@@ -131,13 +97,11 @@ public class BookRestController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return authorRepository.findById(authorId)
-                .map(author -> {
-                    Pageable pageable = PageRequest.of(page, size);
-                    Page<Book> bookPage = bookService.findByAuthor(author, pageable);
-                    return ResponseEntity.ok(bookPage.map(BookMapper::toDto));
-                })
-                .orElse(ResponseEntity.notFound().build());
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Book> bookPage = bookService.getBooksByAuthorId(authorId, pageable);
+
+        return ResponseEntity.ok(bookPage.map(BookMapper::toDto));
     }
 
     // filtrowanie po Gatunku
@@ -162,7 +126,7 @@ public class BookRestController {
 
         List<BookDTO> dtos = books.stream()
                 .map(BookMapper::toDto)
-                .collect(Collectors.toList());
+                .toList();
 
         return ResponseEntity.ok(dtos);
     }
@@ -174,7 +138,7 @@ public class BookRestController {
 
         List<BookDTO> dtos = books.stream()
                 .map(BookMapper::toDto)
-                .collect(Collectors.toList());
+                .toList();
 
         return ResponseEntity.ok(dtos);
     }
