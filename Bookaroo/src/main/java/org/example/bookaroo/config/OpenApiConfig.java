@@ -16,9 +16,9 @@ public class OpenApiConfig {
                 .components(new Components())
                 .info(new Info()
                         .title("Bookaroo API")
-                        .description("API do zarządzania platformą wymiany usług lokalnych")
+                        .description("API do zarządzania platformą typu social reading")
                         .version("v1")
-                        .contact(new Contact().name("Bookaroo").email("neighobrly@gmail.com"))
+                        .contact(new Contact().name("Bookaroo").email("bookaroo@gmail.com"))
                 );
     }
 }
