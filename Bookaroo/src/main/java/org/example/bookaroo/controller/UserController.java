@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.example.bookaroo.dto.CreateUserDTO;
@@ -19,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -41,10 +41,8 @@ public class UserController {
 
     @GetMapping
     @Operation(summary = "Pobierz wszystkich użytkowników", description = "Zwraca listę użytkowników z paginacją i sortowaniem")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Lista użytkowników",
+    @ApiResponse(responseCode = "200", description = "Lista użytkowników",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class)))
-    })
     public ResponseEntity<Page<UserDTO>> getAllUsers(
             @Parameter(description = "Numer strony (zaczyna się od 0)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Rozmiar strony") @RequestParam(defaultValue = "10") int size,
@@ -62,12 +60,16 @@ public class UserController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Pobierz użytkownika po ID", description = "Zwraca szczegóły pojedynczego użytkownika")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Użytkownik znaleziony",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDTO.class))),
-            @ApiResponse(responseCode = "404", description = "Użytkownik nie znaleziony",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-    })
+    @ApiResponse(
+            responseCode = "200",
+            description = "Użytkownik znaleziony",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDTO.class))
+    )
+    @ApiResponse(
+            responseCode = "404",
+            description = "Użytkownik nie znaleziony",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
+    )
     public ResponseEntity<UserDTO> getUserById(@Parameter(description = "ID użytkownika", required = true) @PathVariable UUID id) {
         UserDTO user = userService.getUserById(id);
         return ResponseEntity.ok(user);
@@ -75,12 +77,14 @@ public class UserController {
 
     @PostMapping
     @Operation(summary = "Utwórz nowego użytkownika", description = "Tworzy nowego użytkownika w systemie")
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Użytkownik utworzony",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDTO.class))),
-            @ApiResponse(responseCode = "400", description = "Niepoprawne dane wejściowe"),
-            @ApiResponse(responseCode = "409", description = "Użytkownik już istnieje")
-    })
+    @ApiResponse(
+            responseCode = "201",
+            description = "Użytkownik utworzony",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDTO.class))
+    )
+    @ApiResponse(responseCode = "400", description = "Niepoprawne dane wejściowe")
+    @ApiResponse(responseCode = "409", description = "Użytkownik już istnieje")
+
     public ResponseEntity<UserDTO> createUser(
             @Parameter(description = "Dane nowego użytkownika", required = true) @Valid @RequestBody CreateUserDTO createUserDTO,
             UriComponentsBuilder uriBuilder
@@ -92,13 +96,15 @@ public class UserController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Zaktualizuj użytkownika", description = "Aktualizuje dane istniejącego użytkownika")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Użytkownik zaktualizowany",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDTO.class))),
-            @ApiResponse(responseCode = "400", description = "Niepoprawne dane wejściowe"),
-            @ApiResponse(responseCode = "404", description = "Użytkownik nie znaleziony"),
-            @ApiResponse(responseCode = "409", description = "Email już zajęty")
-    })
+    @PreAuthorize("hasRole('ADMIN')")
+    @ApiResponse(
+            responseCode = "200",
+            description = "Użytkownik zaktualizowany",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDTO.class))
+    )
+    @ApiResponse(responseCode = "400", description = "Niepoprawne dane wejściowe")
+    @ApiResponse(responseCode = "404", description = "Użytkownik nie znaleziony")
+    @ApiResponse(responseCode = "409", description = "Email już zajęty")
     public ResponseEntity<UserDTO> updateUser(
             @Parameter(description = "ID użytkownika", required = true) @PathVariable UUID id,
             @Parameter(description = "Zaktualizowane dane użytkownika", required = true) @Valid @RequestBody UpdateUserDTO updateUserDTO
@@ -109,10 +115,9 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Usuń użytkownika", description = "Usuwa użytkownika (na stałe)")
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Użytkownik usunięty"),
-            @ApiResponse(responseCode = "404", description = "Użytkownik nie znaleziony")
-    })
+    @PreAuthorize("hasRole('ADMIN')")
+    @ApiResponse(responseCode = "204", description = "Użytkownik usunięty")
+    @ApiResponse(responseCode = "404", description = "Użytkownik nie znaleziony")
     public ResponseEntity<Void> deleteUser(@Parameter(description = "ID użytkownika", required = true) @PathVariable UUID id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
@@ -120,10 +125,11 @@ public class UserController {
 
     @GetMapping("/alphabetical")
     @Operation(summary = "Pobierz użytkowników alfabetycznie", description = "Zwraca listę użytkowników posortowaną według username")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Lista użytkowników alfabetycznie",
-                    content = @Content(mediaType = "application/json"))
-    })
+    @ApiResponse(
+            responseCode = "200",
+            description = "Lista użytkowników alfabetycznie",
+            content = @Content(mediaType = "application/json")
+    )
     public ResponseEntity<List<UserDTO>> getUsersAlphabetically() {
         List<UserDTO> users = userService.getUsersAlphabetically();
         return ResponseEntity.ok(users);

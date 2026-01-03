@@ -2,7 +2,6 @@ package org.example.bookaroo.controller.view;
 
 import org.example.bookaroo.entity.Author;
 import org.example.bookaroo.entity.Book;
-import org.example.bookaroo.entity.User;
 import org.example.bookaroo.service.BookService;
 import org.example.bookaroo.service.ReviewService;
 import org.example.bookaroo.service.UserService;

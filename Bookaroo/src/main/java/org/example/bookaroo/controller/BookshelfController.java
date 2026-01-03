@@ -2,6 +2,9 @@ package org.example.bookaroo.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.example.bookaroo.dto.BookshelfDTO;
+import org.example.bookaroo.dto.CreateShelfDTO;
+import org.example.bookaroo.dto.mapper.BookshelfMapper;
 import org.example.bookaroo.entity.Bookshelf;
 import org.example.bookaroo.service.BookshelfService;
 import org.springframework.http.ResponseEntity;
@@ -23,16 +26,22 @@ public class BookshelfController {
 
     @PostMapping("/{userId}")
     @Operation(summary = "Utwórz własną półkę", description = "Tworzy nową półkę dla użytkownika")
-    public ResponseEntity<Void> createShelf(@PathVariable UUID userId, @RequestParam String name) {
-        bookshelfService.createCustomShelf(userId, name);
+    public ResponseEntity<Void> createShelf(@PathVariable UUID userId, @RequestBody CreateShelfDTO request) {
+        bookshelfService.createCustomShelf(userId, request.name());
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{userId}")
     @Operation(summary = "Pobierz półki użytkownika", description = "Zwraca listę wszystkich półek danego użytkownika")
-    public ResponseEntity<List<Bookshelf>> getUserShelves(@PathVariable UUID userId) {
-        // Potem zmienić na DTO, a nie entity jak teraz
-        return ResponseEntity.ok(bookshelfService.getUserShelves(userId));
+    public ResponseEntity<List<BookshelfDTO>> getUserShelves(@PathVariable UUID userId) {
+        List<Bookshelf> shelves = bookshelfService.getUserShelves(userId);
+
+        // encje na listę DTO
+        List<BookshelfDTO> shelfDtos = shelves.stream()
+                .map(BookshelfMapper::toDto)
+                .toList();
+
+        return ResponseEntity.ok(shelfDtos);
     }
 
     @PostMapping("/{shelfId}/books/{bookId}")

@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -49,6 +50,7 @@ public class BookRestController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Utwórz nową książkę", description = "Tworzy nową książkę w systemie")
     public ResponseEntity<BookDTO> createBook(@RequestBody BookDTO bookDto) {
         if (bookDto.title() == null || bookDto.authorId() == null) {
@@ -61,6 +63,7 @@ public class BookRestController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Zaktualizuj książkę", description = "Aktualizuje dane istniejącej książki")
     public ResponseEntity<BookDTO> updateBook(@PathVariable UUID id, @RequestBody BookDTO bookDto) {
         Book updatedBook = bookService.updateBook(id, bookDto);
@@ -69,6 +72,7 @@ public class BookRestController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Usuń książkę", description = "Usuwa książkę (na stałe)")
     public ResponseEntity<Void> deleteBook(@PathVariable UUID id) {
 
