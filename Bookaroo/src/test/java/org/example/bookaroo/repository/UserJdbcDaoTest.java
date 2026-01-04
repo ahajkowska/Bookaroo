@@ -1,8 +1,8 @@
 package org.example.bookaroo.repository;
 
 import org.example.bookaroo.entity.User;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit. jupiter.api.Tag;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -10,16 +10,13 @@ import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions. assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @Import(UserJdbcDao.class)
 @Tag("repository")
-@Tag("jdbc")
-@Tag("integration")
 class UserJdbcDaoTest {
 
     @Autowired
@@ -28,67 +25,47 @@ class UserJdbcDaoTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    @BeforeEach
-    void setUp() {
-        jdbcTemplate. execute("DELETE FROM users");
-    }
+    private final UUID TEST_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
+    private final String TEST_USERNAME = "adam_malysz";
+    private final String TEST_EMAIL = "adam@wisla.pl";
+    private final String TEST_PASS = "narty123";
+    private final String TEST_ROLE = "USER";
+    private final String TEST_AVATAR = "ski.png";
+    private final String TEST_BIO = "Orzeł z Wisły";
 
-    // ROWMAPPER TESTS
-
+    // ROW MAPPER
     @Test
+    @DisplayName("RowMapper: Powinien poprawnie zmapować wszystkie pola")
     @Tag("rowmapper")
-    void shouldMapUsername_whenQueryingDatabase() {
-        UUID userId = UUID.randomUUID();
-        insertTestUser(userId, "adam_malysz", "adam@gmail.com", "USER");
+    void shouldMapAllFields_whenQueryingDatabase() {
+        insertFullTestUser();
 
         List<User> users = userJdbcDao.findAllUsers();
 
-        User user = findUserById(users, userId);
-        assertThat(user.getUsername()).isEqualTo("adam_malysz");
+        User user = users.stream()
+                .filter(u -> u.getId().equals(TEST_ID))
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(user.getId()).isEqualTo(TEST_ID);
+        assertThat(user.getUsername()).isEqualTo(TEST_USERNAME);
+        assertThat(user.getEmail()).isEqualTo(TEST_EMAIL);
+        assertThat(user.getPassword()).isEqualTo(TEST_PASS);
+        assertThat(user.getRole()).isEqualTo(TEST_ROLE);
+        assertThat(user.getAvatar()).isEqualTo(TEST_AVATAR);
+        assertThat(user.getBio()).isEqualTo(TEST_BIO);
+        assertThat(user.isLocked()).isFalse();
     }
 
-    @Test
-    @Tag("rowmapper")
-    void shouldMapEmail_whenQueryingDatabase() {
-        UUID userId = UUID.randomUUID();
-        insertTestUser(userId, "adam_malysz", "adam@gmail.com", "USER");
-
-        List<User> users = userJdbcDao.findAllUsers();
-
-        User user = findUserById(users, userId);
-        assertThat(user.getEmail()).isEqualTo("adam@gmail.com");
-    }
+    // READ
 
     @Test
-    @Tag("rowmapper")
-    void shouldMapPassword_whenQueryingDatabase() {
-        UUID userId = UUID.randomUUID();
-        insertTestUser(userId, "adam_malysz", "adam@gmail.com", "USER");
-
-        List<User> users = userJdbcDao.findAllUsers();
-
-        User user = findUserById(users, userId);
-        assertThat(user.getPassword()).isEqualTo("password123");
-    }
-
-    @Test
-    @Tag("rowmapper")
-    void shouldMapRole_whenQueryingDatabase() {
-        UUID userId = UUID.randomUUID();
-        insertTestUser(userId, "adam_malysz", "adam@gmail.com", "ADMIN");
-
-        List<User> users = userJdbcDao. findAllUsers();
-
-        User user = findUserById(users, userId);
-        assertThat(user.getRole()).isEqualTo("ADMIN");
-    }
-
-    @Test
+    @DisplayName("FindAll: Powinien zwrócić poprawną liczbę użytkowników")
     @Tag("select")
-    void shouldReturnAllUsers_whenFindingAll() {
-        insertTestUser(UUID.randomUUID(), "adam_malysz", "adam@gmail.com", "USER");
-        insertTestUser(UUID.randomUUID(), "magda_gessler", "magdagessler@gmail.com", "ADMIN");
-        insertTestUser(UUID.randomUUID(), "justin_bieber", "justin@onet.com.pl", "USER");
+    void shouldReturnCorrectNumberOfUsers_whenFindingAll() {
+        insertUserWithUsername("user1");
+        insertUserWithUsername("user2");
+        insertUserWithUsername("user3");
 
         List<User> users = userJdbcDao.findAllUsers();
 
@@ -96,205 +73,178 @@ class UserJdbcDaoTest {
     }
 
     @Test
+    @DisplayName("FindAll: Powinien sortować użytkowników malejąco po nazwie (Z-A)")
     @Tag("select")
-    void shouldOrderByUsernameDesc_whenFindingAllUsers() {
-        insertTestUser(UUID.randomUUID(), "adam_malysz", "adam@gmail.com", "USER");
-        insertTestUser(UUID.randomUUID(), "magda_gessler", "magdagessler@gmail.com", "ADMIN");
-        insertTestUser(UUID.randomUUID(), "justin_bieber", "justin@onet.com.pl", "USER");
+    void shouldSortUsersByUsernameDesc_whenFindingAll() {
+        insertUserWithUsername("Adam");
+        insertUserWithUsername("Bartek");
+        insertUserWithUsername("Celina");
 
-        List<User> users = userJdbcDao.findAllUsers();
+        List<User> result = userJdbcDao.findAllUsers();
 
-        assertThat(users. get(0).getUsername()).isEqualTo("magda_gessler");
+        assertThat(result).extracting(User::getUsername)
+                .containsExactly("Celina", "Bartek", "Adam");
     }
 
     @Test
+    @DisplayName("FindAll: Powinien zwrócić pustą listę, gdy brak użytkowników")
     @Tag("select")
-    void shouldReturnEmptyList_whenNoUsersExist() {
-        jdbcTemplate.execute("DELETE FROM users");
-        List<User> users = userJdbcDao.findAllUsers();
-
-        assertThat(users).isEmpty();
+    void shouldReturnEmptyList_whenNoUsersInDb() {
+        List<User> result = userJdbcDao.findAllUsers();
+        assertThat(result).isEmpty();
     }
 
     @Test
+    @DisplayName("FindByRole: Powinien zwrócić tylko użytkowników o zadanej roli")
     @Tag("select")
-    void shouldFindUsersByRole_whenRoleMatches() {
-        insertTestUser(UUID.randomUUID(), "adam_malysz", "adam@gmail.com", "USER");
-        insertTestUser(UUID.randomUUID(), "magda_gessler", "magdagessler@gmail.com", "ADMIN");
-        insertTestUser(UUID.randomUUID(), "justin_bieber", "justin@onet.com.pl", "USER");
+    void shouldReturnOnlyMatchingRole_whenFilteringByRole() {
+        insertUserWithRole("USER");
+        insertUserWithRole("ADMIN");
+        insertUserWithRole("USER");
 
-        List<User> users = userJdbcDao.findUsersByRole("USER");
+        List<User> result = userJdbcDao.findUsersByRole("USER");
 
-        assertThat(users).hasSize(2);
+        assertThat(result).hasSize(2)
+                .allMatch(u -> u.getRole().equals("USER"));
     }
 
     @Test
+    @DisplayName("FindByRole: Powinien sortować po nazwie rosnąco (A-Z)")
     @Tag("select")
-    void shouldReturnOnlyMatchingRole_whenFindingByRole() {
-        insertTestUser(UUID.randomUUID(), "adam_malysz", "adam@gmail.com", "USER");
-        insertTestUser(UUID.randomUUID(), "magda_gessler", "magdagessler@gmail.com", "ADMIN");
-        insertTestUser(UUID.randomUUID(), "justin_bieber", "justin@onet.com.pl", "USER");
+    void shouldSortByUsernameAsc_whenFilteringByRole() {
+        insertUserWithUsername("Zenon");
+        insertUserWithUsername("Anna");
 
-        List<User> users = userJdbcDao.findUsersByRole("USER");
+        List<User> result = userJdbcDao.findUsersByRole("USER");
 
-        assertThat(users).allMatch(user -> user.getRole().equals("USER"));
+        assertThat(result).extracting(User::getUsername)
+                .containsExactly("Anna", "Zenon");
     }
 
-    @Test
-    @Tag("select")
-    void shouldReturnEmptyList_whenRoleNotFound() {
-        insertTestUser(UUID.randomUUID(), "adam_malysz", "adam@gmail.com", "USER");
-        insertTestUser(UUID.randomUUID(), "magda_gessler", "magdagessler@gmail.com", "ADMIN");
-        insertTestUser(UUID.randomUUID(), "justin_bieber", "justin@onet.com.pl", "USER");
-
-        List<User> users = userJdbcDao.findUsersByRole("MODERATOR");
-
-        assertThat(users). isEmpty();
-    }
+    // AGGREGATION
 
     @Test
-    @Tag("select")
+    @DisplayName("Count: Powinien zwrócić zero dla pustej tabeli")
     @Tag("aggregation")
-    void shouldReturnCorrectCount_whenGettingTotalUserCount() {
-        insertTestUser(UUID.randomUUID(), "adam_malysz", "adam@gmail.com", "USER");
-        insertTestUser(UUID.randomUUID(), "magda_gessler", "magdagessler@gmail.com", "ADMIN");
-        insertTestUser(UUID.randomUUID(), "justin_bieber", "justin@onet.com.pl", "USER");
-
+    void shouldReturnZeroCount_whenTableIsEmpty() {
         Integer count = userJdbcDao.getTotalUserCount();
-
-        assertThat(count).isEqualTo(3);
+        assertThat(count).isZero();
     }
 
     @Test
-    @Tag("select")
+    @DisplayName("Count: Powinien zwrócić dokładną liczbę rekordów")
     @Tag("aggregation")
-    void shouldReturnZero_whenNoUsersExist() {
-        jdbcTemplate.execute("DELETE FROM users");
-
+    void shouldReturnCorrectCount_whenUsersExist() {
+        insertUserWithUsername("u1");
+        insertUserWithUsername("u2");
         Integer count = userJdbcDao.getTotalUserCount();
-
-        assertThat(count).isEqualTo(0);
+        assertThat(count).isEqualTo(2);
     }
 
+    // CREATE
+
     @Test
+    @DisplayName("Insert: Powinien zwrócić 1 (liczba zmienionych wierszy)")
     @Tag("insert")
-    @Tag("crud")
-    void shouldReturnOne_whenInsertingUser() {
-        User newUser = createUser("nowy_user", "nowy@gmail.com", "USER");
-
+    void shouldReturnOneRowAffected_whenInsertingUser() {
+        User newUser = createUserObject();
         int rowsAffected = userJdbcDao.insertUser(newUser);
-
         assertThat(rowsAffected).isEqualTo(1);
     }
 
     @Test
+    @DisplayName("Insert: Powinien faktycznie zapisać dane w bazie")
     @Tag("insert")
-    @Tag("crud")
-    void shouldIncreaseCount_whenInsertingUser() {
-        User newUser = createUser("nowy_user", "nowy@gmail.com", "USER");
-        int countBefore = userJdbcDao.getTotalUserCount();
-
-        userJdbcDao. insertUser(newUser);
-
-        int countAfter = userJdbcDao.getTotalUserCount();
-        assertThat(countAfter).isEqualTo(countBefore + 1);
-    }
-
-    @Test
-    @Tag("insert")
-    @Tag("crud")
-    void shouldPersistUsername_whenInsertingUser() {
-        User newUser = createUser("nowy_user", "nowy@gmail.com", "USER");
-
+    void shouldPersistDataInDatabase_whenInsertingUser() {
+        User newUser = createUserObject();
         userJdbcDao.insertUser(newUser);
 
-        List<User> allUsers = userJdbcDao. findAllUsers();
-        User inserted = allUsers.stream()
-                .filter(u -> u.getUsername().equals("nowy_user"))
-                .findFirst()
-                .orElseThrow();
-        assertThat(inserted.getUsername()).isEqualTo("nowy_user");
+        // Niezależna weryfikacja
+        Integer dbCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM users WHERE id = ?",
+                Integer.class,
+                newUser.getId().toString()
+        );
+        assertThat(dbCount).isEqualTo(1);
     }
 
+    // DELETE
+
     @Test
+    @DisplayName("Delete: Powinien zwrócić 1 po usunięciu istniejącego użytkownika")
     @Tag("delete")
-    @Tag("crud")
-    void shouldReturnOne_whenDeletingExistingUser() {
-        UUID userId = UUID.randomUUID();
-        insertTestUser(userId, "adam_malysz", "adam@gmail.com", "USER");
-
-        int rowsAffected = userJdbcDao.deleteUser(userId);
-
+    void shouldReturnOneRowAffected_whenDeletingExistingUser() {
+        insertFullTestUser();
+        int rowsAffected = userJdbcDao.deleteUser(TEST_ID);
         assertThat(rowsAffected).isEqualTo(1);
     }
 
     @Test
+    @DisplayName("Delete: Powinien faktycznie usunąć rekord z bazy")
     @Tag("delete")
-    @Tag("crud")
-    void shouldDecreaseCount_whenDeletingUser() {
-        UUID userId = UUID.randomUUID();
-        insertTestUser(userId, "adam_malysz", "adam@gmail.com", "USER");
+    void shouldRemoveRecordFromDatabase_whenDeleting() {
+        insertFullTestUser();
 
-        int countBefore = userJdbcDao.getTotalUserCount();
+        userJdbcDao.deleteUser(TEST_ID);
 
-        userJdbcDao.deleteUser(userId);
-
-        int countAfter = userJdbcDao.getTotalUserCount();
-        assertThat(countAfter).isEqualTo(countBefore - 1);
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM users WHERE id = ?",
+                Integer.class,
+                TEST_ID.toString()
+        );
+        assertThat(count).isZero();
     }
 
     @Test
+    @DisplayName("Delete: Powinien zwrócić 0 przy próbie usunięcia nieistniejącego ID")
     @Tag("delete")
-    @Tag("crud")
-    void shouldRemoveUser_whenDeleting() {
-        UUID userId = UUID.randomUUID();
-        insertTestUser(userId, "adam_malysz", "adam@gmail.com", "USER");
-
-        userJdbcDao.deleteUser(userId);
-
-        List<User> users = userJdbcDao.findAllUsers();
-        boolean userExists = users.stream()
-                .anyMatch(u -> u.getId().equals(userId));
-        assertThat(userExists).isFalse();
-    }
-
-    @Test
-    @Tag("delete")
-    @Tag("crud")
     void shouldReturnZero_whenDeletingNonExistentUser() {
-        UUID userId = UUID.randomUUID();
-        insertTestUser(userId, "adam_malysz", "adam@gmail.com", "USER");
-
-        UUID nonExistentId = UUID.randomUUID();
-
-        int rowsAffected = userJdbcDao.deleteUser(nonExistentId);
-
-        assertThat(rowsAffected). isEqualTo(0);
+        int rowsAffected = userJdbcDao.deleteUser(UUID.randomUUID());
+        assertThat(rowsAffected).isZero();
     }
 
-    // pomocnicze metody
-    private void insertTestUser(UUID id, String username, String email, String role) {
+    // m. pomocnicze
+
+    private void insertFullTestUser() {
         jdbcTemplate.update(
-                "INSERT INTO users (id, username, email, password, role) " +
-                        "VALUES (?, ?, ?, ?, ?)",
-                id.toString(), username, email, "password123", role
+                """
+                INSERT INTO users (id, username, email, password, role, avatar, bio, is_locked) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, false)
+                """,
+                TEST_ID.toString(), TEST_USERNAME, TEST_EMAIL, TEST_PASS, TEST_ROLE, TEST_AVATAR, TEST_BIO
         );
     }
 
-    private User createUser(String username, String email, String role) {
-        User user = new User();
-        user.setId(UUID.randomUUID());
-        user.setUsername(username);
-        user.setEmail(email);
-        user.setPassword("encodedPassword123");
-        user.setRole(role);
-        return user;
+    private void insertUserWithUsername(String username) {
+        jdbcTemplate.update(
+                """
+                INSERT INTO users (id, username, email, password, role, avatar, bio, is_locked) 
+                VALUES (?, ?, ?, 'pass', 'USER', 'img', 'bio', false)
+                """,
+                UUID.randomUUID().toString(), username, username + "@test.com"
+        );
     }
 
-    private User findUserById(List<User> users, UUID id) {
-        return users.stream()
-                .filter(u -> u.getId().equals(id))
-                .findFirst()
-                .orElseThrow();
+    private void insertUserWithRole(String role) {
+        jdbcTemplate.update(
+                """
+                INSERT INTO users (id, username, email, password, role, avatar, bio, is_locked) 
+                VALUES (?, ?, ?, 'pass', ?, 'img', 'bio', false)
+                """,
+                UUID.randomUUID().toString(), "user_" + UUID.randomUUID(), UUID.randomUUID() + "@test.com", role
+        );
+    }
+
+    private User createUserObject() {
+        User u = new User();
+        u.setId(UUID.randomUUID());
+        u.setUsername("new_user");
+        u.setEmail("new@test.com");
+        u.setPassword("pass");
+        u.setRole("USER");
+        u.setAvatar("default.png");
+        u.setBio("bio");
+        u.setLocked(false);
+        return u;
     }
 }
