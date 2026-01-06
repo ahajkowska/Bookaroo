@@ -1,134 +1,10 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <title>Bookaroo - Strona Główna</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<html th:replace="~{layout :: layout(~{::content})}" xmlns:sec="http://www.w3.org/1999/xhtml">
+<body>
+
+<div th:fragment="content">
+
     <style>
-        :root {
-            --kangaroo-brown: #8B4513;
-            --kangaroo-tan: #D2691E;
-            --kangaroo-light: #F4A460;
-            --kangaroo-cream: #FFDEAD;
-            --kangaroo-dark: #654321;
-            --aussie-red: #C8102E;
-            --outback-orange: #FF8C42;
-            --bush-green: #556B2F;
-        }
-
-        body {
-            background: linear-gradient(135deg, #E8C5A5 0%, #D2B48C 50%, #DEB887 100%);
-            min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        body::before {
-            content: '\1F998'; /*kangur w unicode */
-            position: fixed;
-            font-size: 15rem;
-            opacity: 0.05;
-            bottom: -50px;
-            right: -50px;
-            transform: rotate(-15deg);
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        body::after {
-            content: '\1F998'; /*kangur w unicode */
-            position: fixed;
-            font-size: 10rem;
-            opacity: 0.05;
-            top: 50px;
-            left: -30px;
-            transform: rotate(15deg) scaleX(-1);
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .navbar {
-            background: linear-gradient(135deg, var(--kangaroo-brown), var(--kangaroo-tan)) !important;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 6px rgba(101, 67, 33, 0.3);
-            padding: 1rem 0;
-            border-bottom: 3px solid var(--aussie-red);
-        }
-
-        .navbar-brand {
-            color: var(--kangaroo-cream) !important;
-            font-size: 1.8rem;
-            font-weight: bold;
-            transition: transform 0.3s ease;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .navbar-brand:hover {
-            transform: scale(1.05) rotate(-3deg);
-        }
-
-        .btn-custom {
-            padding: 0.5rem 1.5rem;
-            border-radius: 25px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            border-width: 2px;
-            border-style: solid;
-        }
-
-        .btn-login {
-            background: linear-gradient(135deg, var(--kangaroo-cream), #FFF);
-            color: var(--kangaroo-brown);
-            border-color: var(--kangaroo-brown);
-        }
-        .btn-login:hover {
-            background: var(--kangaroo-brown);
-            color: var(--kangaroo-cream);
-            transform: translateY(-2px);
-            border-color: var(--kangaroo-brown);
-        }
-
-        .btn-register {
-            background: linear-gradient(135deg, var(--aussie-red), var(--outback-orange));
-            color: white;
-            border-color: white;
-            box-shadow: 0 4px 10px rgba(200, 16, 46, 0.3);
-        }
-
-        .btn-register:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(200, 16, 46, 0.5);
-            color: white;
-            background: linear-gradient(135deg, var(--outback-orange), var(--aussie-red));
-            border-color: white;
-        }
-
-        .btn-profile {
-            background: linear-gradient(135deg, var(--bush-green), #6B8E23);
-            color: white;
-            border-color: #F5DEB3;
-        }
-        .btn-profile:hover {
-            transform: translateY(-2px);
-            color: white;
-            box-shadow: 0 4px 10px rgba(85, 107, 47, 0.4);
-            border-color: #F5DEB3;
-        }
-
-        .btn-logout {
-            background: rgba(0, 0, 0, 0.2);
-            color: #FFDEAD;
-            border-color: #FFDEAD;
-        }
-        .btn-logout:hover {
-            background: var(--aussie-red);
-            color: white;
-            border-color: #FFDEAD;
-        }
-
         .hero-section {
             background: linear-gradient(135deg, #FFF8DC 0%, var(--kangaroo-cream) 100%);
             border-radius: 30px;
@@ -143,7 +19,7 @@
         }
 
         .hero-section::before {
-            content: '\1F998'; /*kangur w unicode */
+            content: '\1F998';
             position: absolute;
             font-size: 8rem;
             opacity: 0.1;
@@ -181,11 +57,24 @@
         }
 
         .section-title::before {
-            content: '\1F998'; /*kangur w unicode */
+            content: '\1F998';
             font-size: 2.5rem;
             animation: hop 2s ease-in-out infinite;
         }
 
+        .container-main {
+            background: rgba(255, 248, 220, 0.4);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            border: 3px solid var(--kangaroo-cream);
+            box-shadow: 0 8px 20px rgba(101, 67, 33, 0.15);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Style Karty Książki */
         .book-card {
             background: linear-gradient(135deg, #FFF8DC 0%, #FAEBD7 100%);
             border: 3px solid var(--kangaroo-tan);
@@ -203,7 +92,7 @@
         }
 
         .book-card::before {
-            content: '\1F998'; /*kangur w unicode */
+            content: '\1F998';
             position: absolute;
             top: 10px;
             right: 10px;
@@ -212,42 +101,12 @@
             transition: all 0.3s ease;
         }
 
-        .book-card:hover::before {
-            opacity: 0.4;
-        }
+        .book-card:hover::before { opacity: 0.4; }
 
-        .card-body {
-            padding: 1.8rem;
-            position: relative;
-            z-index: 1;
-        }
-
-        .card-title {
-            color: var(--kangaroo-brown);
-            font-weight: 700;
-            font-size: 1.2rem;
-            margin-bottom: 0.7rem;
-        }
-
-        .card-subtitle {
-            color: var(--kangaroo-tan) !important;
-            font-weight: 600;
-        }
-
-        .card-footer {
-            background: linear-gradient(135deg, var(--kangaroo-cream), #F5DEB3);
-            border-top: 2px solid var(--kangaroo-tan);
-            padding: 1rem 1.5rem;
-        }
-
-        .alert-custom h5 {
-            color: var(--kangaroo-brown);
-            font-weight: bold;
-        }
-
-        .alert-custom p {
-            color: var(--kangaroo-dark);
-        }
+        .card-body { padding: 1.8rem; position: relative; z-index: 1; }
+        .card-title { color: var(--kangaroo-brown); font-weight: 700; font-size: 1.2rem; margin-bottom: 0.7rem; }
+        .card-subtitle { color: var(--kangaroo-tan) !important; font-weight: 600; }
+        .card-footer { background: linear-gradient(135deg, var(--kangaroo-cream), #F5DEB3); border-top: 2px solid var(--kangaroo-tan); padding: 1rem 1.5rem; }
 
         .isbn-badge {
             background: linear-gradient(135deg, var(--kangaroo-tan), var(--kangaroo-light));
@@ -260,167 +119,113 @@
             font-weight: 600;
             box-shadow: 0 2px 4px rgba(101, 67, 33, 0.3);
         }
-
-        .container-main {
-            background: rgba(255, 248, 220, 0.4);
-            backdrop-filter: blur(10px);
-            border-radius: 30px;
-            padding: 2.5rem;
-            margin-bottom: 2rem;
-            border: 3px solid var(--kangaroo-cream);
-            box-shadow: 0 8px 20px rgba(101, 67, 33, 0.15);
-            position: relative;
-            z-index: 1;
-        }
-
     </style>
-</head>
-<body>
 
-<nav class="navbar navbar-expand-lg fixed-top navbar-dark">
     <div class="container">
-        <a class="navbar-brand" href="/">Bookaroo</a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <div class="hero-section">
+            <h1>🦘 Witaj w Bookaroo!</h1>
+            <p class="mb-4">Skacz między półkami i dziel się z innymi przeczytanymi książkami!</p>
 
-        <div class="collapse navbar-collapse justify-content-end" id="navbarContent">
+            <div class="row justify-content-center mt-4">
+                <div class="col-md-8 col-lg-6">
+                    <form action="/" method="get" class="d-flex shadow-sm rounded-pill overflow-hidden bg-white">
+                        <input class="form-control border-0 px-4 py-3"
+                               type="search"
+                               name="search"
+                               placeholder="Szukaj po tytule, autorze lub ISBN..."
+                               th:value="${searchQuery}"
+                               aria-label="Search"
+                               style="outline: none; box-shadow: none;">
 
-            <div sec:authorize="isAuthenticated()" class="d-flex align-items-center">
-                <span class="text-white me-3">Witaj, <strong sec:authentication="name">User</strong>!</span>
-
-                <a sec:authorize="hasRole('ADMIN')"
-                   href="/admin/dashboard"
-                   class="btn-custom me-2"
-                   style="background: #FFD700; color: #654321; border-color: #654321;">
-                    Panel Admina
-                </a>
-
-                <a th:href="@{/profile/{id}(id=${#authentication.principal.id})}"
-                   class="btn-custom btn-profile me-2">
-                    Mój Profil
-                </a>
-
-                <form th:action="@{/logout}" method="post" class="d-inline">
-                    <button type="submit" class="btn btn-custom btn-logout">Wyloguj</button>
-                </form>
+                        <button class="btn btn-warning px-4 fw-bold"
+                                type="submit"
+                                style="background-color: var(--outback-orange); color: white; border-radius: 0;">
+                            SZUKAJ
+                        </button>
+                    </form>
+                </div>
             </div>
 
-            <div sec:authorize="!isAuthenticated()">
-                <a href="/login" class="btn btn-custom btn-login">Zaloguj się</a>
-                <a href="/register" class="btn btn-custom btn-register">Dołącz do nas</a>
-            </div>
-
-        </div>
-    </div>
-</nav>
-
-<div style="height: 76px;"></div>
-
-<div class="container">
-    <div class="hero-section">
-        <h1>🦘 Witaj w Bookaroo!</h1>
-        <p class="mb-4">Skacz między półkami i dziel się z innymi przeczytanymi książkami!</p>
-
-        <div class="row justify-content-center mt-4">
-            <div class="col-md-8 col-lg-6">
-                <form action="/" method="get" class="d-flex shadow-sm rounded-pill overflow-hidden bg-white">
-                    <input class="form-control border-0 px-4 py-3"
-                           type="search"
-                           name="search"
-                           placeholder="Szukaj po tytule, autorze lub ISBN..."
-                           th:value="${searchQuery}"
-                           aria-label="Search"
-                           style="outline: none; box-shadow: none;">
-
-                    <button class="btn btn-warning px-4 fw-bold"
-                            type="submit"
-                            style="background-color: var(--outback-orange); color: white; border-radius: 0;">
-                        SZUKAJ
-                    </button>
-                </form>
+            <div th:if="${searchQuery}" class="mt-3">
+                <span class="text-muted">Wyniki dla: <strong th:text="${searchQuery}"></strong></span>
+                <a href="/" class="btn btn-sm btn-outline-dark rounded-pill ms-2">Wyczyść filtry</a>
             </div>
         </div>
 
-        <div th:if="${searchQuery}" class="mt-3">
-            <span class="text-muted">Wyniki dla: <strong th:text="${searchQuery}"></strong></span>
-            <a href="/" class="btn btn-sm btn-outline-dark rounded-pill ms-2">Wyczyść fltry</a>
+        <div th:if="${books.empty}" class="text-center py-5">
+            <h3 class="text-muted">Trochę tutaj pusto...</h3>
+            <p>Nie znaleźliśmy książek pasujących do zapytania "<strong><span th:text="${searchQuery}"></span></strong>".</p>
+            <a href="/" class="btn btn-outline-primary rounded-pill mt-2">Pokaż wszystkie książki</a>
         </div>
-    </div>
 
-    <div th:if="${books.empty}" class="text-center py-5">
-        <h3 class="text-muted">Trochę tutaj pusto...</h3>
-        <p>Nie znaleźliśmy książek pasujących do zapytania "<strong><span th:text="${searchQuery}"></span></strong>".</p>
-        <a href="/" class="btn btn-outline-primary rounded-pill mt-2">Pokaż wszystkie książki</a>
-    </div>
+        <div class="container-main">
+            <h3 class="section-title">Polecane Książki</h3>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                <div class="col" th:each="book : ${books}">
+                    <div class="card book-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title mb-0 text-truncate" th:text="${book.title}" style="max-width: 75%;" th:title="${book.title}">Tytuł</h5>
 
-    <div class="container-main">
-        <h3 class="section-title">Polecane Książki</h3>
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-            <div class="col" th:each="book : ${books}">
-                <div class="card book-card h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h5 class="card-title mb-0 text-truncate" th:text="${book.title}" style="max-width: 75%;" th:title="${book.title}">Tytuł</h5>
-
-                            <span class="badge rounded-pill bg-warning text-dark border border-warning"
-                                  th:if="${ratings != null and ratings.containsKey(book.id)}"
-                                  title="Średnia ocena">
+                                <span class="badge rounded-pill bg-warning text-dark border border-warning"
+                                      th:if="${ratings != null and ratings.containsKey(book.id)}"
+                                      title="Średnia ocena">
                                 <span th:text="${#numbers.formatDecimal(ratings.get(book.id), 1, 1)}">8.5</span> ★
                             </span>
 
-                            <span class="badge rounded-pill bg-light text-muted border"
-                                  th:unless="${ratings != null and ratings.containsKey(book.id)}"
-                                  title="Brak ocen">
+                                <span class="badge rounded-pill bg-light text-muted border"
+                                      th:unless="${ratings != null and ratings.containsKey(book.id)}"
+                                      title="Brak ocen">
                                 - ★
                             </span>
-                        </div>
-                        <h6 class="card-subtitle mb-3 text-muted">
+                            </div>
+                            <h6 class="card-subtitle mb-3 text-muted">
                         <span th:if="${book.author != null}"
                               th:text="${book.author.name + ' ' + book.author.surname}">Autor</span>
-                            <span th:unless="${book.author != null}">Autor nieznany</span>
-                        </h6>
-                        <span class="isbn-badge">
+                                <span th:unless="${book.author != null}">Autor nieznany</span>
+                            </h6>
+                            <span class="isbn-badge">
                             ISBN: <span th:text="${book.isbn}">numer ISBN</span>
                         </span>
-                    </div>
+                        </div>
 
-                    <div class="card-footer bg-transparent border-top-0 text-center pb-3">
+                        <div class="card-footer bg-transparent border-top-0 text-center pb-3">
 
-                        <a th:href="@{/book/{id}(id=${book.id})}" class="btn btn-sm btn-outline-dark rounded-pill w-100 mb-2">Szczegóły</a>
+                            <a th:href="@{/book/{id}(id=${book.id})}" class="btn btn-sm btn-outline-dark rounded-pill w-100 mb-2">Szczegóły</a>
 
-                        <form sec:authorize="isAuthenticated()" th:action="@{/bookshelf/add}" method="post">
-                            <input type="hidden" name="bookId" th:value="${book.id}"/>
+                            <form sec:authorize="isAuthenticated()" th:action="@{/bookshelf/add}" method="post">
+                                <input type="hidden" name="bookId" th:value="${book.id}"/>
 
-                            <div class="input-group input-group-sm">
-                                <select name="shelfName" class="form-select" style="border-radius: 20px 0 0 20px;" required>
-                                    <option value="" disabled selected>-- Wybierz --</option>
-                                    <option th:each="shelf : ${userShelves}"
-                                            th:value="${shelf.name}"
-                                            th:text="${shelf.name}">
-                                        Nazwa Półki
-                                    </option>
-                                </select>
-                                <button class="btn btn-success" type="submit" style="border-radius: 0 20px 20px 0;">+</button>
-                            </div>
-                        </form>
+                                <div class="input-group input-group-sm">
+                                    <select name="shelfId" class="form-select" style="border-radius: 20px 0 0 20px;" required>
+                                        <option value="" disabled selected>-- Wybierz --</option>
+                                        <option th:each="shelf : ${userShelves}"
+                                                th:value="${shelf.id}"
+                                                th:text="${shelf.name}"
+                                                th:selected="${shelf.name == currentShelfName}">
+                                            Nazwa Półki
+                                        </option>
+                                    </select>
+                                    <button class="btn btn-success" type="submit" style="border-radius: 0 20px 20px 0;">+</button>
+                                </div>
+                            </form>
 
-                        <small sec:authorize="!isAuthenticated()" class="text-muted">
-                            Zaloguj się, aby dodać do półki.
-                        </small>
+                            <small sec:authorize="!isAuthenticated()" class="text-muted">
+                                Zaloguj się, aby dodać do półki.
+                            </small>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div th:if="${#lists.isEmpty(books)}" class="alert alert-warning mt-4 text-center">
-            <h5>Baza książek jest pusta!</h5>
-            <p class="mb-0">Dodaj książki w panelu administratora.</p>
+            <div th:if="${#lists.isEmpty(books)}" class="alert alert-warning mt-4 text-center">
+                <h5>Baza książek jest pusta!</h5>
+                <p class="mb-0">Dodaj książki w panelu administratora.</p>
+            </div>
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

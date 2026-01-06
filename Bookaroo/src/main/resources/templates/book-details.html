@@ -137,12 +137,13 @@
                 </label>
 
                 <div class="input-group">
-                    <select name="shelfName" class="form-select form-select-sm" required>
+                    <select name="shelfId" class="form-select form-select-sm" required>
                         <option value="" disabled selected>-- Wybierz --</option>
                         <option th:each="shelf : ${userShelves}"
-                                th:value="${shelf.name}"
+                                th:value="${shelf.id}"
                                 th:text="${shelf.name}"
-                                th:selected="${shelf.name == currentShelfName}"> Nazwa Półki
+                                th:selected="${shelf.name == currentShelfName}">
+                            Nazwa Półki
                         </option>
                     </select>
                     <button class="btn btn-sm btn-dark" type="submit">OK</button>
