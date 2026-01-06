@@ -1,13 +1,15 @@
 package org.example.bookaroo.controller.view;
 
-import org.example.bookaroo.dto.UserBackupDTO;
 import org.example.bookaroo.entity.Bookshelf;
 import org.example.bookaroo.entity.User;
 import org.example.bookaroo.repository.*;
+import org.example.bookaroo.service.BackupService;
 import org.example.bookaroo.service.BookshelfService;
 import org.example.bookaroo.service.CustomUserDetailsService;
 import org.example.bookaroo.service.UserService;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -28,10 +30,12 @@ public class ProfileController {
 
     private final UserService userService;
     private final BookshelfService bookshelfService;
+    private final BackupService backupService;
 
-    public ProfileController(UserService userService, BookshelfService bookshelfService) {
+    public ProfileController(UserService userService, BookshelfService bookshelfService, BackupService backupService) {
         this.userService = userService;
         this.bookshelfService = bookshelfService;
+        this.backupService = backupService;
     }
 
     // profil użytkownika
@@ -75,34 +79,62 @@ public class ProfileController {
 
         return "redirect:/profile/" + user.getId();
     }
-
+    // --- EKSPORT ---
     @GetMapping("/profile/export")
-    public ResponseEntity<UserBackupDTO> exportProfile(@AuthenticationPrincipal UserDetails currentUser) {
-        UserBackupDTO backupDto = userService.exportUserData(currentUser.getUsername());
+    public ResponseEntity<ByteArrayResource> exportProfile(@AuthenticationPrincipal UserDetails currentUser, @RequestParam(defaultValue = "json") String format) {
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=backup_" + currentUser.getUsername() + ".json")
-                .body(backupDto);
+        try {
+            byte[] fileData;
+            String filename;
+            MediaType mediaType;
+
+            if ("csv".equalsIgnoreCase(format)) {
+                fileData = backupService.exportUserReviewsToCsv(currentUser.getUsername());
+                filename = "recenzje_" + currentUser.getUsername() + ".csv";
+                mediaType = MediaType.parseMediaType("text/csv");
+            } else if ("pdf".equalsIgnoreCase(format)) {
+                fileData = backupService.exportUserReviewsToPdf(currentUser.getUsername());
+                filename = "recenzje_" + currentUser.getUsername() + ".pdf";
+                mediaType = MediaType.APPLICATION_PDF;
+            } else {
+                // JSON
+                fileData = backupService.exportUserDataToJson(currentUser.getUsername());
+                filename = "backup_" + currentUser.getUsername() + ".json";
+                mediaType = MediaType.APPLICATION_JSON;
+            }
+
+            ByteArrayResource resource = new ByteArrayResource(fileData);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .contentType(mediaType)
+                    .contentLength(fileData.length)
+                    .body(resource);
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     @PostMapping("/profile/import")
     public String importProfile(@AuthenticationPrincipal UserDetails currentUser,
                                 @RequestParam("file") MultipartFile file) {
+
+        User user = userService.findByUsername(currentUser.getUsername());
+
         if (file.isEmpty()) {
-            return "redirect:/";
+            return "redirect:/profile/" + user.getId() + "?error=import_failed";
         }
 
         try {
-            // Delegacja całej logiki do serwisu
-            userService.importUserData(currentUser.getUsername(), file);
+            backupService.importUserData(currentUser.getUsername(), file);
 
-            // Pobranie ID tylko do przekierowania
-            User user = userService.findByUsername(currentUser.getUsername());
             return "redirect:/profile/" + user.getId() + "?success=restored";
 
         } catch (Exception e) {
-            e.printStackTrace(); // Warto zalogować błąd (log.error) zamiast printStackTrace
-            return "redirect:/?error=import_failed";
+            e.printStackTrace();
+
+            return "redirect:/profile/" + user.getId() + "?error=import_failed";
         }
     }
 
