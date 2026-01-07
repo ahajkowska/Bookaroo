@@ -51,16 +51,16 @@ class BookServiceTest {
         Author author = new Author();
         author.setId(authorId);
 
-        BookDTO dto = new BookDTO(null, "Title", "ISBN", "Desc", 2024, authorId, null, null);
+        BookDTO dto = new BookDTO(null, "Title", "ISBN", "Desc", 2024, authorId, null, null, null);
 
         when(authorRepository.findById(authorId)).thenReturn(Optional.of(author));
         when(bookRepository.save(any(Book.class))).thenAnswer(i -> i.getArgument(0));
 
         // When
-        Book result = bookService.createBook(dto);
+        BookDTO result = bookService.createBook(dto);
 
         // Then
-        assertThat(result.getTitle()).isEqualTo("Title");
+        assertThat(result.title()).isEqualTo("Title");
     }
 
     @Test
@@ -71,16 +71,16 @@ class BookServiceTest {
         Author author = new Author();
         author.setId(authorId);
 
-        BookDTO dto = new BookDTO(null, "Title", "ISBN", "Desc", 2024, authorId, null, null);
+        BookDTO dto = new BookDTO(null, "Title", "ISBN", "Desc", 2024, authorId, null, null, null);
 
         when(authorRepository.findById(authorId)).thenReturn(Optional.of(author));
         when(bookRepository.save(any(Book.class))).thenAnswer(i -> i.getArgument(0));
 
         // When
-        Book result = bookService.createBook(dto);
+        BookDTO result = bookService.createBook(dto);
 
         // Then
-        assertThat(result.getAuthor()).isEqualTo(author);
+        assertThat(result.authorId()).isEqualTo(authorId);
     }
 
     @Test
@@ -89,7 +89,7 @@ class BookServiceTest {
         // Given
         UUID authorId = UUID.randomUUID();
 
-        BookDTO dto = new BookDTO(null, "Title", "ISBN", "Desc", 2024, authorId, null, null);
+        BookDTO dto = new BookDTO(null, "Title", "ISBN", "Desc", 2024, authorId, null, null, null);
 
         when(authorRepository.findById(authorId)).thenReturn(Optional.empty());
 
@@ -116,16 +116,16 @@ class BookServiceTest {
         existingBook.setTitle("Old Title");
         existingBook.setAuthor(author);
 
-        BookDTO dto = new BookDTO(null, "New Title", "New ISBN", "New Desc", 2025, authorId, null, null);
+        BookDTO dto = new BookDTO(null, "New Title", "New ISBN", "New Desc", 2025, authorId, null, null, null);
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(existingBook));
         when(bookRepository.save(any(Book.class))).thenAnswer(i -> i.getArgument(0));
 
         // When
-        Book result = bookService.updateBook(bookId, dto);
+        BookDTO result = bookService.updateBook(bookId, dto);
 
         // Then
-        assertThat(result.getTitle()).isEqualTo("New Title");
+        assertThat(result.title()).isEqualTo("New Title");
     }
 
     @Test
@@ -144,17 +144,17 @@ class BookServiceTest {
         existingBook.setAuthor(oldAuthor);
 
         // POPRAWKA: Dodano null na początku
-        BookDTO dto = new BookDTO(null, "Title", "ISBN", "Desc", 2024, newAuthorId, null, null);
+        BookDTO dto = new BookDTO(null, "Title", "ISBN", "Desc", 2024, newAuthorId, null, null, null);
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(existingBook));
         when(authorRepository.findById(newAuthorId)).thenReturn(Optional.of(newAuthor));
         when(bookRepository.save(any(Book.class))).thenAnswer(i -> i.getArgument(0));
 
         // When
-        Book result = bookService.updateBook(bookId, dto);
+        BookDTO result = bookService.updateBook(bookId, dto);
 
         // Then
-        assertThat(result.getAuthor().getId()).isEqualTo(newAuthorId);
+        assertThat(result.authorId()).isEqualTo(newAuthorId);
     }
 
     @Test
@@ -163,7 +163,7 @@ class BookServiceTest {
         // Given
         UUID bookId = UUID.randomUUID();
 
-        BookDTO dto = new BookDTO(null, "Title", "ISBN", "Desc", 2024, UUID.randomUUID(), null, null);
+        BookDTO dto = new BookDTO(null, "Title", "ISBN", "Desc", 2024, UUID.randomUUID(), null, null, null);
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.empty());
 
@@ -185,7 +185,7 @@ class BookServiceTest {
         Book existingBook = new Book();
         existingBook.setAuthor(oldAuthor);
 
-        BookDTO dto = new BookDTO(null, "Title", "ISBN", "Desc", 2024, newAuthorId, null, null);
+        BookDTO dto = new BookDTO(null, "Title", "ISBN", "Desc", 2024, newAuthorId, null, null, null);
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(existingBook));
         when(authorRepository.findById(newAuthorId)).thenReturn(Optional.empty());
@@ -202,10 +202,24 @@ class BookServiceTest {
     @DisplayName("should return list of all books")
     void shouldReturnAllBooks() {
         // Given
-        when(bookRepository.findAll()).thenReturn(List.of(new Book(), new Book()));
+        Book book1 = new Book();
+        book1.setTitle("Test");
+        Author author = new Author();
+        author.setName("A"); author.setSurname("B");
+        book1.setAuthor(author);
+        book1.setPublicationYear(1999);
+
+        Book book2 = new Book();
+        book2.setTitle("Test");
+        Author author2 = new Author();
+        author2.setName("A"); author2.setSurname("B");
+        book2.setAuthor(author2);
+        book2.setPublicationYear(2000);
+
+        when(bookRepository.findAll()).thenReturn(List.of(book1, book2));
 
         // When
-        List<Book> result = bookService.findAllList();
+        List<BookDTO> result = bookService.findAllList();
 
         // Then
         assertThat(result).hasSize(2);

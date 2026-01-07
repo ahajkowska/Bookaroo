@@ -1,10 +1,10 @@
 package org.example.bookaroo.service;
 
+import org.example.bookaroo.dto.BookshelfDTO;
 import org.example.bookaroo.entity.Book;
 import org.example.bookaroo.entity.Bookshelf;
 import org.example.bookaroo.entity.BookshelfBook;
 import org.example.bookaroo.entity.User;
-import org.example.bookaroo.exception.ResourceNotFoundException;
 import org.example.bookaroo.repository.BookRepository;
 import org.example.bookaroo.repository.BookshelfBookRepository;
 import org.example.bookaroo.repository.BookshelfRepository;
@@ -153,7 +153,7 @@ class BookshelfServiceTest {
         when(bookshelfRepository.findAllByUserId(user.getId())).thenReturn(shelves);
 
         // When
-        List<Bookshelf> result = bookshelfService.getUserShelvesByUsername(username);
+        List<BookshelfDTO> result = bookshelfService.getUserShelvesByUsername(username);
 
         // Then
         assertThat(result).hasSize(1);
@@ -166,7 +166,7 @@ class BookshelfServiceTest {
         when(userRepository.findByUsername("unknown")).thenReturn(Optional.empty());
 
         // When
-        List<Bookshelf> result = bookshelfService.getUserShelvesByUsername("unknown");
+        List<BookshelfDTO> result = bookshelfService.getUserShelvesByUsername("unknown");
 
         // Then
         assertThat(result).isEmpty();
@@ -335,7 +335,6 @@ class BookshelfServiceTest {
         user.setBookshelves(List.of(s1, s2));
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(bookRepository.findById(bookId)).thenReturn(Optional.of(new Book()));
 
         // When
         bookshelfService.removeBookFromLibrary(userId, bookId);

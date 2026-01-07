@@ -2,7 +2,6 @@ package org.example.bookaroo.service;
 
 import org.example.bookaroo.dto.CreateUserDTO;
 import org.example.bookaroo.dto.UpdateUserDTO;
-import org.example.bookaroo.dto.UserBackupDTO;
 import org.example.bookaroo.dto.UserDTO;
 import org.example.bookaroo.entity.User;
 import org.example.bookaroo.exception.ResourceNotFoundException;
@@ -21,9 +20,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -45,14 +41,6 @@ class UserServiceTest {
     private BookshelfService bookshelfService;
     @Mock
     private FileStorageService fileStorageService;
-    @Mock
-    private StatisticsRepository statisticsRepository;
-    @Mock
-    private BookshelfRepository bookshelfRepository;
-    @Mock
-    private BookRepository bookRepository;
-    @Mock
-    private ReviewRepository reviewRepository;
 
     @InjectMocks
     private UserService userService;
@@ -344,21 +332,4 @@ class UserServiceTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
-    @Test
-    @DisplayName("should save user during import")
-    void shouldSaveUser_duringImport() throws IOException {
-        // Given
-        String username = "importUser";
-        User user = new User();
-        String json = "{}";
-        MultipartFile file = mock(MultipartFile.class);
-        when(file.getInputStream()).thenReturn(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
-
-        // When
-        userService.importUserData(username, file);
-
-        // Then
-        verify(userRepository).save(user);
-    }
 }
