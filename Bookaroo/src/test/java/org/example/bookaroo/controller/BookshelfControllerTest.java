@@ -2,8 +2,8 @@ package org.example.bookaroo.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.bookaroo.config.SecurityConfig;
+import org.example.bookaroo.dto.BookshelfDTO;
 import org.example.bookaroo.dto.CreateShelfDTO;
-import org.example.bookaroo.entity.Bookshelf;
 import org.example.bookaroo.service.BookshelfService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -62,13 +62,11 @@ class BookshelfControllerTest {
     @WithMockUser
     void shouldReturnUserShelves() throws Exception {
         UUID userId = UUID.randomUUID();
-        Bookshelf shelf1 = new Bookshelf();
-        shelf1.setName("Przeczytane");
 
-        Bookshelf shelf2 = new Bookshelf();
-        shelf2.setName("Do przeczytania");
+        BookshelfDTO shelf1 = new BookshelfDTO(UUID.randomUUID(), "Przeczytane", true, List.of());
+        BookshelfDTO shelf2 = new BookshelfDTO(UUID.randomUUID(), "Do przeczytania", false, List.of());
 
-        when(bookshelfService.getUserShelves(userId)).thenReturn(List.of(shelf1, shelf2));
+        when(bookshelfService.getUserShelvesWithDetails(userId)).thenReturn(List.of(shelf1, shelf2));
 
         mockMvc.perform(get("/api/v1/shelves/{userId}", userId))
                 .andExpect(status().isOk())
@@ -76,7 +74,7 @@ class BookshelfControllerTest {
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].name", is("Przeczytane")));
 
-        verify(bookshelfService).getUserShelves(userId);
+        verify(bookshelfService).getUserShelvesWithDetails(userId);
     }
 
     @Test

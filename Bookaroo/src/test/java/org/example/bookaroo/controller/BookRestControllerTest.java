@@ -92,6 +92,7 @@ class BookRestControllerTest {
     @WithMockUser(roles = "ADMIN")
     void shouldCreateBook_whenValid() throws Exception {
         UUID authorId = UUID.randomUUID();
+        UUID bookId = UUID.randomUUID();
 
         BookDTO inputDto = new BookDTO(
                 null,
@@ -101,15 +102,15 @@ class BookRestControllerTest {
                 1965,
                 authorId,
                 "Frank Herbert",
+                null,
                 null
         );
 
-        Book savedBook = createTestBook("Dune", "999");
-        savedBook.setId(UUID.randomUUID());
+        BookDTO savedDto = new BookDTO(
+                bookId, "Dune", "999", "Sci-Fi Epic", 1965, authorId, "Frank Herbert", 0.0, List.of()
+        );
+        when(bookService.createBook(any(BookDTO.class))).thenReturn(savedDto);
 
-        when(bookService.createBook(any(BookDTO.class))).thenReturn(savedBook);
-
-        // When & Then
         mockMvc.perform(post("/api/v1/books")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -130,6 +131,7 @@ class BookRestControllerTest {
                 2020,
                 null, // authorId jest null
                 null,
+                null,
                 null
         );
 
@@ -146,7 +148,7 @@ class BookRestControllerTest {
     @DisplayName("POST /api/v1/books - USER nie może stworzyć książki (403)")
     @WithMockUser(roles = "USER")
     void shouldForbidCreate_whenUser() throws Exception {
-        BookDTO inputDto = new BookDTO(null, "Hacker Book", "666", "Desc", 2024, UUID.randomUUID(), "Hacker", null);
+        BookDTO inputDto = new BookDTO(null, "Hacker Book", "666", "Desc", 2024, UUID.randomUUID(), "Hacker", null, null);
 
         mockMvc.perform(post("/api/v1/books")
                         .with(csrf())
@@ -171,13 +173,11 @@ class BookRestControllerTest {
                 2021,
                 UUID.randomUUID(),
                 "Author Name",
-                4.5
+                4.5,
+                List.of()
         );
 
-        Book updatedEntity = createTestBook("New Title", "111");
-        updatedEntity.setId(id);
-
-        when(bookService.updateBook(eq(id), any(BookDTO.class))).thenReturn(updatedEntity);
+        when(bookService.updateBook(eq(id), any(BookDTO.class))).thenReturn(updateDto);
 
         mockMvc.perform(put("/api/v1/books/{id}", id)
                         .with(csrf())
@@ -192,7 +192,7 @@ class BookRestControllerTest {
     @WithMockUser(roles = "USER")
     void shouldForbidUpdate_whenUser() throws Exception {
         UUID id = UUID.randomUUID();
-        BookDTO updateDto = new BookDTO(id, "Hacked Title", "666", "Desc", 2024, UUID.randomUUID(), "Hacker", 1.0);
+        BookDTO updateDto = new BookDTO(id, "Hacked Title", "666", "Desc", 2024, UUID.randomUUID(), "Hacker", 1.0, null);
 
         mockMvc.perform(put("/api/v1/books/{id}", id)
                         .with(csrf())

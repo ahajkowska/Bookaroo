@@ -1,6 +1,7 @@
 package org.example.bookaroo.controller.view;
 
 import org.example.bookaroo.config.SecurityConfig;
+import org.example.bookaroo.dto.BookDTO;
 import org.example.bookaroo.entity.Book;
 import org.example.bookaroo.entity.Bookshelf;
 import org.example.bookaroo.service.BookService;
@@ -42,19 +43,20 @@ class BookDetailsControllerTest {
     @MockitoBean
     private BookshelfService bookshelfService;
 
-    // --- SCENARIUSZ 1: Wyświetlanie szczegółów (Anonim) ---
+    // Wyświetlanie szczegółów (Anonim)
 
     @Test
     @DisplayName("GET /book/{id} - Niezalogowani nie widzą statystyk książki")
     void shouldShowBookDetails_WhenAnonymous() throws Exception {
         UUID bookId = UUID.randomUUID();
-        Book book = new Book();
-        book.setId(bookId);
-        book.setTitle("Test Book");
 
-        when(bookService.findById(bookId)).thenReturn(Optional.of(book));
+        BookDTO bookDto = new BookDTO(
+                bookId, "Test Book", "1234567890", "Opis", 2024,
+                UUID.randomUUID(), "Jan Kowalski", 4.5, List.of("Fantasy")
+        );
+
+        when(bookService.getBookDetails(bookId)).thenReturn(bookDto);
         when(reviewService.getReviewsForBook(bookId)).thenReturn(Collections.emptyList());
-
         when(bookService.getBookStatistics(bookId)).thenReturn(createMockStats());
 
         mockMvc.perform(get("/book/{id}", bookId))
@@ -66,14 +68,17 @@ class BookDetailsControllerTest {
         verifyNoInteractions(bookshelfService);
     }
 
-    // --- SCENARIUSZ 2: Wyświetlanie szczegółów (Zalogowany) ---
+    // Wyświetlanie szczegółów (Zalogowany)
 
     @Test
     @DisplayName("GET /book/{id} - Wyświetlanie szczegółów zalogowanym użytkownikom")
     void shouldShowBookDetailsWithShelves_WhenLoggedIn() throws Exception {
         UUID bookId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
-        Book book = new Book();
+        BookDTO bookDto = new BookDTO(
+                bookId, "Test Book", "1234567890", "Opis", 2024,
+                UUID.randomUUID(), "Jan Kowalski", 4.5, List.of("Fantasy")
+        );
 
         CustomUserDetailsService.BookarooUserDetails mockPrincipal = mock(CustomUserDetailsService.BookarooUserDetails.class);
         when(mockPrincipal.getId()).thenReturn(userId);
@@ -81,9 +86,8 @@ class BookDetailsControllerTest {
         when(mockPrincipal.getPassword()).thenReturn("pass");
         when(mockPrincipal.getAuthorities()).thenReturn(Collections.emptyList());
 
-        when(bookService.findById(bookId)).thenReturn(Optional.of(book));
+        when(bookService.getBookDetails(bookId)).thenReturn(bookDto);
         when(reviewService.getReviewsForBook(bookId)).thenReturn(Collections.emptyList());
-
         when(bookService.getBookStatistics(bookId)).thenReturn(createMockStats());
 
         when(bookshelfService.getUserShelves(userId)).thenReturn(List.of(new Bookshelf()));

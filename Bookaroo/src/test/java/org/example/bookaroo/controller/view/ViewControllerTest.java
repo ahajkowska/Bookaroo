@@ -1,8 +1,8 @@
 package org.example.bookaroo.controller.view;
 
 import org.example.bookaroo.config.SecurityConfig;
-import org.example.bookaroo.entity.Book;
-import org.example.bookaroo.entity.Bookshelf;
+import org.example.bookaroo.dto.BookDTO;
+import org.example.bookaroo.dto.BookshelfDTO;
 import org.example.bookaroo.service.BookService;
 import org.example.bookaroo.service.BookshelfService;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -40,7 +41,7 @@ class ViewControllerTest {
     @Test
     @DisplayName("GET / - Niezalogowani widzą listę książek")
     void shouldShowIndexPage_WhenAnonymous() throws Exception {
-        List<Book> books = List.of(new Book(), new Book());
+        List<BookDTO> books = List.of(createMockBookDto(), createMockBookDto());
         when(bookService.findAllList()).thenReturn(books);
         when(bookService.getAllBookAverageRatings()).thenReturn(Collections.emptyMap());
 
@@ -58,8 +59,8 @@ class ViewControllerTest {
     @DisplayName("GET / - Zalogowany użytkownik widzi listę książek oraz odpowiednie półki")
     @WithMockCustomUser(username = "magda_gessler")
     void shouldShowIndexPageWithShelves_WhenLoggedIn() throws Exception {
-        List<Book> books = List.of(new Book());
-        List<Bookshelf> shelves = List.of(new Bookshelf(), new Bookshelf());
+        List<BookDTO> books = List.of(createMockBookDto());
+        List<BookshelfDTO> shelves = List.of(new BookshelfDTO(UUID.randomUUID(), "Do przeczytania", true, null), new BookshelfDTO(UUID.randomUUID(), "Ulubione", false, null));
 
         when(bookService.findAllList()).thenReturn(books);
         when(bookService.getAllBookAverageRatings()).thenReturn(Collections.emptyMap());
@@ -79,7 +80,7 @@ class ViewControllerTest {
     @WithMockCustomUser
     void shouldFilterBooks_WhenSearchParamPresent() throws Exception {
         String query = "Harry";
-        List<Book> searchResults = List.of(new Book());
+        List<BookDTO> searchResults = List.of(createMockBookDto());
 
         when(bookService.searchBooksList(query)).thenReturn(searchResults);
         when(bookService.getAllBookAverageRatings()).thenReturn(Collections.emptyMap());
@@ -98,7 +99,7 @@ class ViewControllerTest {
     @Test
     @DisplayName("GET /?search= - Zwracanie całej listy książęk, jeśli pole wyszukiwania jest puste")
     void shouldReturnAllBooks_WhenSearchParamIsEmpty() throws Exception {
-        when(bookService.findAllList()).thenReturn(List.of(new Book()));
+        when(bookService.findAllList()).thenReturn(List.of(createMockBookDto()));
         when(bookService.getAllBookAverageRatings()).thenReturn(Collections.emptyMap());
 
         mockMvc.perform(get("/")
@@ -108,5 +109,10 @@ class ViewControllerTest {
 
         verify(bookService).findAllList();
         verify(bookService, never()).searchBooksList(anyString());
+    }
+
+    // m. pomocnicza
+    private BookDTO createMockBookDto() {
+        return new BookDTO(UUID.randomUUID(), "Tytuł", "ISBN", "Opis", 2023, UUID.randomUUID(), "Autor", 0.0, List.of());
     }
 }

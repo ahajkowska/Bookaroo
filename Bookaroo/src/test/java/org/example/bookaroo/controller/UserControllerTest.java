@@ -45,6 +45,9 @@ class UserControllerTest {
     @MockitoBean
     private UserService userService;
 
+    @MockitoBean
+    private BookshelfService bookshelfService;
+
     @Test
     @DisplayName("GET /api/v1/users - Powinno zwrócić listę użytkowników (zalogowany)")
     @WithMockUser
@@ -61,7 +64,7 @@ class UserControllerTest {
     void shouldCreateUser_whenAnonymous() throws Exception {
         CreateUserDTO createDto = new CreateUserDTO("nowyUser", "new@test.com", "superHaslo123@", "USER", null, "Hi");
         UUID newId = UUID.randomUUID();
-        UserDTO createdDto = new UserDTO(newId, "nowyUser", "new@test.com", null, "Hi", "USER", LocalDateTime.now());
+        UserDTO createdDto = new UserDTO(newId, "nowyUser", "new@test.com", null, "Hi", "USER", LocalDateTime.now(), false);
 
         when(userService.createUser(any(CreateUserDTO.class))).thenReturn(createdDto);
 

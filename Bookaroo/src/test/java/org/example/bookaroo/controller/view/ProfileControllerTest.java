@@ -1,9 +1,9 @@
 package org.example.bookaroo.controller.view;
 
 import org.example.bookaroo.config.SecurityConfig;
-import org.example.bookaroo.dto.UserBackupDTO;
 import org.example.bookaroo.entity.Bookshelf;
 import org.example.bookaroo.entity.User;
+import org.example.bookaroo.service.BackupService;
 import org.example.bookaroo.service.BookshelfService;
 import org.example.bookaroo.service.CustomUserDetailsService;
 import org.example.bookaroo.service.UserService;
@@ -44,6 +44,9 @@ class ProfileControllerTest {
 
     @MockitoBean
     private BookshelfService bookshelfService;
+
+    @MockitoBean
+    private BackupService backupService;
 
     // --- SCENARIUSZ 1: Wyświetlanie profilu (Właściciel) ---
 
@@ -103,7 +106,7 @@ class ProfileControllerTest {
     }
 
     @Test
-    @DisplayName("POST /profile/update - Aktualizacja porfilu (bio i avatar)")
+    @DisplayName("POST /profile/update - Aktualizacja profilu")
     @WithMockCustomUser(username = "magdaGessler")
     void shouldUpdateProfile() throws Exception {
         UUID userId = UUID.randomUUID();
@@ -147,22 +150,45 @@ class ProfileControllerTest {
     }
 
     @Test
-    @DisplayName("GET /profile/export - Robi backup (JSON)")
+    @DisplayName("GET /profile/export - Robi backup (JSON domyślnie)")
     @WithMockCustomUser(username = "magdaGessler")
-    void shouldExportProfile() throws Exception {
-        UserBackupDTO backup = new UserBackupDTO(
-                "magdaGessler",
-                "user@test.com",
-                Collections.emptyList(),
-                Collections.emptyList()
-        );
-
-        when(userService.exportUserData("magdaGessler")).thenReturn(backup);
+    void shouldExportProfileJson() throws Exception {
+        byte[] mockData = "{\"mock\": \"json\"}".getBytes();
+        when(backupService.exportUserDataToJson("magdaGessler")).thenReturn(mockData);
 
         mockMvc.perform(get("/profile/export"))
                 .andExpect(status().isOk())
-                .andExpect(header().string("Content-Disposition", containsString("attachment; filename=backup_magdaGessler.json")))
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+                .andExpect(header().string("Content-Disposition", containsString("attachment; filename=\"backup_magdaGessler.json\"")))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().bytes(mockData));
+    }
+
+    @Test
+    @DisplayName("GET /profile/export?format=csv - Pobiera recenzje CSV")
+    @WithMockCustomUser(username = "magdaGessler")
+    void shouldExportReviewsCsv() throws Exception {
+        byte[] mockData = "col1;col2".getBytes();
+        when(backupService.exportUserReviewsToCsv("magdaGessler")).thenReturn(mockData);
+
+        mockMvc.perform(get("/profile/export").param("format", "csv"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Disposition", containsString("attachment; filename=\"recenzje_magdaGessler.csv\"")))
+                .andExpect(content().contentType("text/csv"))
+                .andExpect(content().bytes(mockData));
+    }
+
+    @Test
+    @DisplayName("GET /profile/export?format=pdf - Pobiera recenzje PDF")
+    @WithMockCustomUser(username = "magdaGessler")
+    void shouldExportReviewsPdf() throws Exception {
+        byte[] mockData = "%PDF-1.4".getBytes();
+        when(backupService.exportUserReviewsToPdf("magdaGessler")).thenReturn(mockData);
+
+        mockMvc.perform(get("/profile/export").param("format", "pdf"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Disposition", containsString("attachment; filename=\"recenzje_magdaGessler.pdf\"")))
+                .andExpect(content().contentType(MediaType.APPLICATION_PDF))
+                .andExpect(content().bytes(mockData));
     }
 
     @Test
@@ -183,7 +209,7 @@ class ProfileControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/profile/" + userId + "?success=restored"));
 
-        verify(userService).importUserData(eq("magdaGessler"), any());
+        verify(backupService).importUserData(eq("magdaGessler"), any());
     }
 
     @Test
