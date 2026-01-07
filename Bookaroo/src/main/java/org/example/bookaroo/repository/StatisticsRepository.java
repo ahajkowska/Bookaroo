@@ -4,7 +4,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,7 +79,7 @@ public class StatisticsRepository {
         // rozkład ocen
         try {
             String sqlDist = "SELECT rating, COUNT(*) as count FROM reviews WHERE book_id = ? GROUP BY rating";
-            jdbcTemplate.query(sqlDist, (rs) -> {
+            jdbcTemplate.query(sqlDist, rs -> {
                 int r = rs.getInt("rating");
                 int c = rs.getInt("count");
                 if (r >= 1 && r <= 10) ratingDistribution.put(r, c);

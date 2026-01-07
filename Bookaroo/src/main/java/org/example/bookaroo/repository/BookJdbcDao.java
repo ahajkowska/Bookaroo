@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public class BookJdbcDao {
+public class BookJdbcDao implements BookDAO {
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -35,6 +35,7 @@ public class BookJdbcDao {
         }
     };
 
+    @Override
     // SELECT z query() i RowMapper
     public List<Book> findTopRatedBooks(int limit) {
         String sql = """
@@ -46,15 +47,41 @@ public class BookJdbcDao {
         return jdbcTemplate.query(sql, bookRowMapper, limit);
     }
 
+    @Override
     public List<Book> findBooksByPublicationYear(int year) {
         String sql = "SELECT * FROM books WHERE publication_year = ? ORDER BY title ASC";
         return jdbcTemplate.query(sql, bookRowMapper, year);
     }
 
+    @Override
     // UPDATE - aktualizowanie oceny książki
     public int updateBookRating(UUID bookId, Double newRating) {
         String sql = "UPDATE books SET average_rating = ? WHERE id = ?";
         return jdbcTemplate.update(sql, newRating, bookId.toString());
     }
 
+    @Override
+    // DELETE - usuwanie książki
+    public int deleteBook(UUID bookId) {
+        String sql = "DELETE FROM books WHERE id = ?";
+        return jdbcTemplate.update(sql, bookId.toString());
+    }
+
+    @Override
+    // INSERT - dodawanie książki
+    public int insertBook(Book book) {
+        String sql = """
+            INSERT INTO books (id, title, isbn, publication_year, description, total_reviews, average_rating) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """;
+        return jdbcTemplate.update(sql,
+                book.getId().toString(),
+                book.getTitle(),
+                book.getIsbn(),
+                book.getPublicationYear(),
+                book.getDescription(),
+                book.getTotalReviews(),
+                book.getAverageRating()
+        );
+    }
 }
