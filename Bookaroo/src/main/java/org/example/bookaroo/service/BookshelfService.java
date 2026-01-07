@@ -1,5 +1,7 @@
 package org.example.bookaroo.service;
 
+import org.example.bookaroo.dto.BookshelfDTO;
+import org.example.bookaroo.dto.mapper.BookshelfMapper;
 import org.example.bookaroo.entity.Book;
 import org.example.bookaroo.entity.Bookshelf;
 import org.example.bookaroo.entity.BookshelfBook;
@@ -70,14 +72,26 @@ public class BookshelfService {
     }
 
     @Transactional(readOnly = true)
-    public List<Bookshelf> getUserShelvesByUsername(String username) {
-        // 1. Szukamy użytkownika po nazwie (żeby zdobyć jego ID)
+    public List<BookshelfDTO> getUserShelvesByUsername(String username) {
         return userRepository.findByUsername(username)
-                .map(user -> bookshelfRepository.findAllByUserId(user.getId())) // Jeśli user jest -> pobierz półki
-                .orElseGet(java.util.Collections::emptyList); // Jeśli user nie istnieje -> zwróć pustą listę
+                .map(user -> bookshelfRepository.findAllByUserId(user.getId()))
+                .orElseGet(java.util.Collections::emptyList)
+                .stream()
+                .map(BookshelfMapper::toDto)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<BookshelfDTO> getUserShelvesWithDetails(UUID userId) {
+        List<Bookshelf> shelves = bookshelfRepository.findAllByUserId(userId);
+
+        return shelves.stream()
+                .map(BookshelfMapper::toDto)
+                .toList();
     }
 
     // na której półce znajduje się dana książka (nazwa półki lub null)
+    @Transactional(readOnly = true)
     public String getShelfNameForBook(UUID userId, UUID bookId) {
         List<Bookshelf> userShelves = getUserShelves(userId);
 
@@ -128,9 +142,6 @@ public class BookshelfService {
     public void removeBookFromLibrary(UUID userId, UUID bookId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
-
-        Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new ResourceNotFoundException("Book", "id", bookId));
 
         for (Bookshelf shelf : user.getBookshelves()) {
             bookshelfBookRepository.deleteByBookshelfIdAndBookId(shelf.getId(), bookId);

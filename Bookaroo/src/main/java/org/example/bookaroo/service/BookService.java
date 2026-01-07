@@ -1,13 +1,11 @@
 package org.example.bookaroo.service;
 
 import org.example.bookaroo.dto.BookDTO;
+import org.example.bookaroo.dto.mapper.BookMapper;
 import org.example.bookaroo.entity.Book;
 import org.example.bookaroo.entity.Author;
 import org.example.bookaroo.exception.ResourceNotFoundException;
-import org.example.bookaroo.repository.AuthorRepository;
-import org.example.bookaroo.repository.BookJdbcDao;
-import org.example.bookaroo.repository.BookRepository;
-import org.example.bookaroo.repository.StatisticsRepository;
+import org.example.bookaroo.repository.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,44 +20,39 @@ import java.util.UUID;
 public class BookService {
 
     private final BookRepository bookRepository;
-    private final BookJdbcDao bookJdbcDao;
+    private final BookDAO bookDAO;
     private final StatisticsRepository statisticsRepository;
     private final AuthorRepository authorRepository;
 
     public BookService(BookRepository bookRepository,
-                       BookJdbcDao bookJdbcDao,
+                       BookDAO bookDAO,
                        StatisticsRepository statisticsRepository,
                        AuthorRepository authorRepository) {
         this.bookRepository = bookRepository;
-        this.bookJdbcDao = bookJdbcDao;
+        this.bookDAO = bookDAO;
         this.statisticsRepository = statisticsRepository;
         this.authorRepository = authorRepository;
     }
 
     @Transactional
-    public Book createBook(BookDTO bookDto) {
+    public BookDTO createBook(BookDTO bookDto) {
         Author author = authorRepository.findById(bookDto.authorId())
                 .orElseThrow(() -> new ResourceNotFoundException("Author", "id", bookDto.authorId()));
 
-        Book book = new Book();
-        book.setTitle(bookDto.title());
-        book.setIsbn(bookDto.isbn());
-        book.setDescription(bookDto.description());
-        book.setPublicationYear(bookDto.publicationYear());
+        Book book = BookMapper.toEntity(bookDto);
         book.setAuthor(author);
 
-        return bookRepository.save(book);
+        Book savedBook = bookRepository.save(book);
+
+        return BookMapper.toDto(savedBook);
     }
 
     @Transactional
-    public Book updateBook(UUID id, BookDTO bookDto) {
+    public BookDTO updateBook(UUID id, BookDTO bookDto) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book", "id", id));
 
-        book.setTitle(bookDto.title());
-        book.setIsbn(bookDto.isbn());
-        book.setDescription(bookDto.description());
-        book.setPublicationYear(bookDto.publicationYear());
+        BookMapper.updateEntity(bookDto, book);
 
         // logika zmiany autora
         if (bookDto.authorId() != null && !bookDto.authorId().equals(book.getAuthor().getId())) {
@@ -68,11 +61,26 @@ public class BookService {
             book.setAuthor(newAuthor);
         }
 
-        return bookRepository.save(book);
+        Book savedBook = bookRepository.save(book);
+        return BookMapper.toDto(savedBook);
     }
 
-    public List<Book> findAllList() {
-        return bookRepository.findAll();
+    @Transactional
+    public void createBookViaSql(Book book) {
+        bookDAO.insertBook(book);
+    }
+
+    @Transactional
+    public void deleteBookViaSql(UUID id) {
+        bookDAO.deleteBook(id);
+    }
+
+    @Transactional(readOnly = true)
+    public List<BookDTO> findAllList() {
+        return bookRepository.findAll()
+                .stream()
+                .map(BookMapper::toDto)
+                .toList();
     }
 
     public Page<Book> findAll(Pageable pageable) {
@@ -81,10 +89,6 @@ public class BookService {
 
     public Optional<Book> findById(UUID id) {
         return bookRepository.findById(id);
-    }
-
-    public boolean existsById(UUID id) {
-        return bookRepository.existsById(id);
     }
 
     @Transactional
@@ -97,16 +101,16 @@ public class BookService {
         bookRepository.deleteById(id);
     }
 
-    public List<Book> searchBooksList(String query) {
-        return bookRepository.searchBooks(query);
+    @Transactional(readOnly = true)
+    public List<BookDTO> searchBooksList(String query) {
+        return bookRepository.searchBooks(query)
+                .stream()
+                .map(BookMapper::toDto)
+                .toList();
     }
 
     public Page<Book> searchBooks(String query, Pageable pageable) {
         return bookRepository.searchBooks(query, pageable);
-    }
-
-    public Page<Book> findByAuthor(Author author, Pageable pageable) {
-        return bookRepository.findByAuthor(author, pageable);
     }
 
     public Page<Book> findByGenresId(UUID genreId, Pageable pageable) {
@@ -114,11 +118,11 @@ public class BookService {
     }
 
     public List<Book> getTopRatedBooksViaSql(int limit) {
-        return bookJdbcDao.findTopRatedBooks(limit);
+        return bookDAO.findTopRatedBooks(limit);
     }
 
     public List<Book> getBooksByYearViaSql(int year) {
-        return bookJdbcDao.findBooksByPublicationYear(year);
+        return bookDAO.findBooksByPublicationYear(year);
     }
 
     public Page<Book> getBooksByAuthorId(UUID authorId, Pageable pageable) {
@@ -129,7 +133,15 @@ public class BookService {
     }
 
     public void updateBookRating(UUID bookId, Double newRating) {
-        bookJdbcDao.updateBookRating(bookId, newRating);
+        bookDAO.updateBookRating(bookId, newRating);
+    }
+
+    @Transactional(readOnly = true)
+    public BookDTO getBookDetails(UUID id) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Book", "id", id));
+
+        return BookMapper.toDto(book);
     }
 
     public Map<String, Object> getBookStatistics(UUID bookId) {
