@@ -3,6 +3,7 @@ package org.example.bookaroo.controller.view;
 import org.example.bookaroo.dto.BookDTO;
 import org.example.bookaroo.dto.mapper.BookMapper;
 import org.example.bookaroo.entity.Book;
+import org.example.bookaroo.entity.Bookshelf;
 import org.example.bookaroo.entity.Review;
 import org.example.bookaroo.service.BookService;
 import org.example.bookaroo.service.BookshelfService;
@@ -37,9 +38,6 @@ public class BookDetailsController {
     @GetMapping("/book/{id}")
     public String showBookDetails(@PathVariable UUID id, Model model,
                                   @AuthenticationPrincipal UserDetails currentUser) {
-        Book bookEntity = bookService.findById(id)
-                .orElseThrow(() -> new RuntimeException("Book not found"));
-
         BookDTO bookDto = bookService.getBookDetails(id);
 
         List<Review> reviews = reviewService.getReviewsForBook(id);
@@ -51,18 +49,13 @@ public class BookDetailsController {
         model.addAttribute("reviews", reviews);
 
         // obsługa półek użytkownika
-        if (currentUser != null) {
-            if (currentUser instanceof CustomUserDetailsService.BookarooUserDetails) {
-                UUID userId = ((CustomUserDetailsService.BookarooUserDetails) currentUser).getId();
+        if (currentUser != null && currentUser instanceof CustomUserDetailsService.BookarooUserDetails userDetails) {
+            UUID userId = userDetails.getId();
+            List<Bookshelf> userShelves = bookshelfService.getUserShelves(userId);
+            String currentShelfName = bookshelfService.getShelfNameForBook(userId, id);
 
-                // pobranie listy półek
-                var userShelves = bookshelfService.getUserShelves(userId);
-                model.addAttribute("userShelves", userShelves);
-
-                // na której półce jest książka
-                String currentShelfName = bookshelfService.getShelfNameForBook(userId, id);
-                model.addAttribute("currentShelfName", currentShelfName);
-            }
+            model.addAttribute("userShelves", userShelves);
+            model.addAttribute("currentShelfName", currentShelfName);
         }
 
         return "book-details";

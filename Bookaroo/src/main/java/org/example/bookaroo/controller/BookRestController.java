@@ -57,18 +57,18 @@ public class BookRestController {
             return ResponseEntity.badRequest().build();
         }
 
-        Book savedBook = bookService.createBook(bookDto);
+        BookDTO savedBookDto = bookService.createBook(bookDto);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(BookMapper.toDto(savedBook));
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedBookDto);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Zaktualizuj książkę", description = "Aktualizuje dane istniejącej książki")
     public ResponseEntity<BookDTO> updateBook(@PathVariable UUID id, @RequestBody BookDTO bookDto) {
-        Book updatedBook = bookService.updateBook(id, bookDto);
+        BookDTO updatedBook = bookService.updateBook(id, bookDto);
 
-        return ResponseEntity.ok(BookMapper.toDto(updatedBook));
+        return ResponseEntity.ok(updatedBook);
     }
 
     @DeleteMapping("/{id}")

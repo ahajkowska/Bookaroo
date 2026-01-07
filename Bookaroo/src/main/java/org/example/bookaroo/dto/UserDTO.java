@@ -20,4 +20,5 @@ public class UserDTO {
     private String bio;
     private String role;
     private LocalDateTime createdAt;
+    boolean locked;
 }

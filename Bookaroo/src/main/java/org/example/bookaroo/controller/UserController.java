@@ -135,11 +135,12 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-    @PostMapping("/{userId}/shelves/{shelfId}/books/{bookId}")
-    public ResponseEntity<Void> addBookToShelf(@PathVariable UUID userId,
-                                               @PathVariable UUID shelfId,
-                                               @PathVariable UUID bookId) {
-        bookshelfService.addOrMoveBook(userId, shelfId, bookId);
-        return ResponseEntity.ok().build();
-    }
+//    @PostMapping("/{userId}/shelves/{shelfId}/books/{bookId}")
+//    @Operation(summary = "Dodaj książkę do półki", description = "Dodaje książkę do półki wybranego użytkownika")
+//    public ResponseEntity<Void> addBookToShelf(@PathVariable UUID userId,
+//                                               @PathVariable UUID shelfId,
+//                                               @PathVariable UUID bookId) {
+//        bookshelfService.addOrMoveBook(userId, shelfId, bookId);
+//        return ResponseEntity.ok().build();
+//    }
 }

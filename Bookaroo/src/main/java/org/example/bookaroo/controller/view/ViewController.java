@@ -1,7 +1,7 @@
 package org.example.bookaroo.controller.view;
 
-import org.example.bookaroo.entity.Book;
-import org.example.bookaroo.entity.Bookshelf;
+import org.example.bookaroo.dto.BookDTO;
+import org.example.bookaroo.dto.BookshelfDTO;
 import org.example.bookaroo.service.BookService;
 import org.example.bookaroo.service.BookshelfService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -34,7 +34,7 @@ public class ViewController {
                         @AuthenticationPrincipal UserDetails currentUser) {
 
         // logika wyszukiwania książek
-        List<Book> books;
+        List<BookDTO> books;
         if (search != null && !search.isBlank()) {
             books = bookService.searchBooksList(search);
             model.addAttribute("searchQuery", search);
@@ -49,7 +49,7 @@ public class ViewController {
 
         // przekazanie listy półek zalogowanego użytkownika
         if (currentUser != null) {
-            List<Bookshelf> shelves = bookshelfService.getUserShelvesByUsername(currentUser.getUsername());
+            List<BookshelfDTO> shelves = bookshelfService.getUserShelvesByUsername(currentUser.getUsername());
             model.addAttribute("userShelves", shelves);
         }
 

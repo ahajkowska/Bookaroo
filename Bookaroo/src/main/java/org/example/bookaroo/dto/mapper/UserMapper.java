@@ -17,7 +17,8 @@ public class UserMapper {
                 user.getAvatar(),
                 user.getBio(),
                 user.getRole(),
-                user.getCreatedAt()
+                user.getCreatedAt(),
+                user.isLocked()
         );
     }
 
