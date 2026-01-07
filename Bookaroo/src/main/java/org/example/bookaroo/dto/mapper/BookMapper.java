@@ -2,7 +2,10 @@ package org.example.bookaroo.dto.mapper;
 
 import org.example.bookaroo.dto.BookDTO;
 import org.example.bookaroo.entity.Book;
+import org.example.bookaroo.entity.Genre;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class BookMapper {
@@ -20,6 +23,13 @@ public class BookMapper {
             authorFullName = book.getAuthor().getName() + " " + book.getAuthor().getSurname();
         }
 
+        List<String> genreNames = new ArrayList<>();
+        if (book.getGenres() != null) {
+            genreNames = book.getGenres().stream()
+                    .map(Genre::getName)
+                    .toList();
+        }
+
         return new BookDTO(
                 book.getId(),
                 book.getTitle(),
@@ -28,7 +38,8 @@ public class BookMapper {
                 book.getPublicationYear(),
                 authorId,
                 authorFullName,
-                book.getAverageRating()
+                book.getAverageRating(),
+                genreNames
         );
     }
 

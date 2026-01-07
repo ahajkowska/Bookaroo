@@ -1,5 +1,7 @@
 package org.example.bookaroo.controller.view;
 
+import org.example.bookaroo.dto.BookshelfDTO;
+import org.example.bookaroo.dto.mapper.BookshelfMapper;
 import org.example.bookaroo.entity.Bookshelf;
 import org.example.bookaroo.entity.User;
 import org.example.bookaroo.repository.*;
@@ -43,7 +45,7 @@ public class ProfileController {
     public String showProfile(@PathVariable UUID userId, Model model, @AuthenticationPrincipal UserDetails currentUser) {
         User user = userService.findById(userId);
 
-        List<Bookshelf> shelves = bookshelfService.getUserShelves(userId);
+        List<BookshelfDTO> shelvesDtos = bookshelfService.getUserShelvesWithDetails(userId);
 
         Map<String, Object> stats = userService.getUserStats(userId);
 
@@ -51,7 +53,7 @@ public class ProfileController {
         boolean isOwner = currentUser != null && currentUser.getUsername().equals(user.getUsername());
 
         model.addAttribute("user", user);
-        model.addAttribute("shelves", shelves);
+        model.addAttribute("shelves", shelvesDtos);
         model.addAttribute("stats", stats);
         model.addAttribute("isOwner", isOwner);
 

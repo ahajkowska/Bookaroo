@@ -237,9 +237,8 @@
                                 th:each="book : ${shelf.books}">
                                 <div>
                                     <strong th:text="${book.title}">Tytuł</strong>
-                                    <span class="text-muted ms-2" th:text="${book.author != null ? book.author.name + ' ' + book.author.surname : 'Autor nieznany'}">Autor</span>
+                                    <span class="text-muted ms-2" th:text="${book.authorName != null ? book.authorName : 'Autor nieznany'}">Autor</span>
                                 </div>
-                                <span class="badge badge-rating" th:text="${book.averageRating}">Rating</span>
 
                                 <form th:if="${isOwner}" th:action="@{/bookshelf/remove}" method="post" style="margin: 0;">
                                     <input type="hidden" name="bookId" th:value="${book.id}"/>

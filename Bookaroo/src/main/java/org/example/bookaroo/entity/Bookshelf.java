@@ -7,7 +7,6 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -35,7 +34,7 @@ public class Bookshelf {
     public List<Book> getBooks() {
         return items.stream()
                 .map(BookshelfBook::getBook)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     // metoda do dodawania (potrzebna np. przy imporcie)

@@ -34,12 +34,7 @@ public class BookshelfController {
     @GetMapping("/{userId}")
     @Operation(summary = "Pobierz półki użytkownika", description = "Zwraca listę wszystkich półek danego użytkownika")
     public ResponseEntity<List<BookshelfDTO>> getUserShelves(@PathVariable UUID userId) {
-        List<Bookshelf> shelves = bookshelfService.getUserShelves(userId);
-
-        // encje na listę DTO
-        List<BookshelfDTO> shelfDtos = shelves.stream()
-                .map(BookshelfMapper::toDto)
-                .toList();
+        List<BookshelfDTO> shelfDtos = bookshelfService.getUserShelvesWithDetails(userId);
 
         return ResponseEntity.ok(shelfDtos);
     }

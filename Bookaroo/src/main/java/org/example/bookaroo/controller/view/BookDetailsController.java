@@ -1,5 +1,7 @@
 package org.example.bookaroo.controller.view;
 
+import org.example.bookaroo.dto.BookDTO;
+import org.example.bookaroo.dto.mapper.BookMapper;
 import org.example.bookaroo.entity.Book;
 import org.example.bookaroo.entity.Review;
 import org.example.bookaroo.service.BookService;
@@ -35,15 +37,17 @@ public class BookDetailsController {
     @GetMapping("/book/{id}")
     public String showBookDetails(@PathVariable UUID id, Model model,
                                   @AuthenticationPrincipal UserDetails currentUser) {
-        Book book = bookService.findById(id)
+        Book bookEntity = bookService.findById(id)
                 .orElseThrow(() -> new RuntimeException("Book not found"));
+
+        BookDTO bookDto = bookService.getBookDetails(id);
 
         List<Review> reviews = reviewService.getReviewsForBook(id);
 
         Map<String, Object> stats = bookService.getBookStatistics(id);
 
         model.addAttribute("stats", stats);
-        model.addAttribute("book", book);
+        model.addAttribute("book", bookDto);
         model.addAttribute("reviews", reviews);
 
         // obsługa półek użytkownika

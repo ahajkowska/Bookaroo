@@ -9,6 +9,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -54,10 +55,10 @@ public class User implements UserDetails {
 
     // Relacje
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Review> givenReviews;
+    private List<Review> givenReviews = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Bookshelf> bookshelves;
+    private List<Bookshelf> bookshelves = new ArrayList<>();
 
     // metody wymagane przez spring security (UserDetails)
 

@@ -1,5 +1,6 @@
 package org.example.bookaroo.dto;
 
+import java.util.List;
 import java.util.UUID;
 
 public record BookDTO(
@@ -9,6 +10,7 @@ public record BookDTO(
         String description,
         int publicationYear,
         UUID authorId,
-        String author,
-        Double averageRating
+        String authorName,
+        Double averageRating,
+        List<String> genres
 ) {}

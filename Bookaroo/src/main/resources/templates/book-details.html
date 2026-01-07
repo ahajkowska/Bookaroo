@@ -104,13 +104,13 @@
 
     <div class="details-card mb-5">
         <h1 class="display-4 fw-bold" style="color: #8B4513;" th:text="${book.title}">Tytuł</h1>
-        <h3 class="text-muted" th:text="${book.author?.name + ' ' + book.author?.surname}">Autor</h3>
+        <h3 class="text-muted" th:text="${book.authorName}">Autor</h3>
         <p class="lead mt-3" th:text="${book.description}">Opis książki...</p>
         <div class="mt-4">
             <span class="badge bg-secondary rounded-pill p-2" th:text="${'Rok wydania: ' + book.publicationYear}">2024</span>
             <span class="badge bg-dark rounded-pill p-2" th:text="${'ISBN: ' + book.isbn}">ISBN</span>
-            <span th:each="genre : ${book.genres}"
-                  th:text="${genre.name}"
+            <span th:each="genreName : ${book.genres}"
+                  th:text="${genreName}"
                   class="badge rounded-pill p-2 ms-1"
                   style="background-color: var(--bush-green); color: white;">
                   Gatunek

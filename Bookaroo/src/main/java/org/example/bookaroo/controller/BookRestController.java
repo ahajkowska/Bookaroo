@@ -146,4 +146,24 @@ public class BookRestController {
 
         return ResponseEntity.ok(dtos);
     }
+
+    @PostMapping("/jdbc")
+    @Operation(summary = "Dodaj książkę przez JDBC", description = "Użycie JdbcTemplate INSERT")
+    public ResponseEntity<Void> createBookViaJdbc(@RequestBody BookDTO bookDto) {
+        Book book = BookMapper.toEntity(bookDto);
+
+        if (book.getId() == null) {
+            book.setId(UUID.randomUUID());
+        }
+
+        bookService.createBookViaSql(book);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @DeleteMapping("/jdbc/{id}")
+    @Operation(summary = "Usuń książkę przez JDBC", description = "Użycie JdbcTemplate DELETE")
+    public ResponseEntity<Void> deleteBookViaJdbc(@PathVariable UUID id) {
+        bookService.deleteBookViaSql(id);
+        return ResponseEntity.noContent().build();
+    }
 }
