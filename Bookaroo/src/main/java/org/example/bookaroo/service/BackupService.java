@@ -1,6 +1,7 @@
 package org.example.bookaroo.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lowagie.text.pdf.BaseFont;
 import com.opencsv.CSVWriter;
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.PdfPTable;
@@ -61,6 +62,7 @@ public class BackupService {
     }
 
     // EKSPORT DANYCH (CSV)
+    @Transactional(readOnly = true)
     public byte[] exportUserReviewsToCsv(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Nie znaleziono użytkownika o loginie: " + username));
@@ -97,6 +99,7 @@ public class BackupService {
         }
     }
 
+    @Transactional(readOnly = true)
     public byte[] exportUserReviewsToPdf(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Nie znaleziono użytkownika o loginie: " + username));
@@ -108,7 +111,13 @@ public class BackupService {
             document.open();
 
             // Tytuł
-            Font fontTitle = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18);
+            String fontPath = "src/main/resources/fonts/roboto.ttf";
+            BaseFont roboto = BaseFont.createFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+
+            Font fontTitle = new Font(roboto, 18, Font.BOLD);
+            Font fontHeader = new Font(roboto, 12, Font.BOLD);
+            Font fontCell = new Font(roboto, 10, Font.NORMAL);
+
             Paragraph title = new Paragraph("Recenzje uzytkownika: " + username, fontTitle);
             title.setAlignment(Element.ALIGN_CENTER);
             document.add(title);
@@ -117,14 +126,14 @@ public class BackupService {
             // Tabela
             PdfPTable table = new PdfPTable(3); // 3 kolumny
             table.setWidthPercentage(100);
-            table.addCell("Tytul ksiazki");
-            table.addCell("Ocena");
-            table.addCell("Tresc");
+            table.addCell(new Phrase("Tytuł książki", fontHeader));
+            table.addCell(new Phrase("Ocena", fontHeader));
+            table.addCell(new Phrase("Treść", fontHeader));
 
             for (var review : user.getGivenReviews()) {
-                table.addCell(review.getBook().getTitle());
-                table.addCell(String.valueOf(review.getRating()));
-                table.addCell(review.getContent());
+                table.addCell(new Phrase(review.getBook().getTitle(), fontCell));
+                table.addCell(new Phrase(String.valueOf(review.getRating()), fontCell));
+                table.addCell(new Phrase(review.getContent(), fontCell));
             }
 
             document.add(table);
@@ -215,6 +224,5 @@ public class BackupService {
             }
         }
 
-        userRepository.save(user);
     }
 }

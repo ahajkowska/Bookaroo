@@ -1,10 +1,7 @@
 package org.example.bookaroo.controller.view;
 
 import org.example.bookaroo.dto.BookshelfDTO;
-import org.example.bookaroo.dto.mapper.BookshelfMapper;
-import org.example.bookaroo.entity.Bookshelf;
 import org.example.bookaroo.entity.User;
-import org.example.bookaroo.repository.*;
 import org.example.bookaroo.service.BackupService;
 import org.example.bookaroo.service.BookshelfService;
 import org.example.bookaroo.service.CustomUserDetailsService;
