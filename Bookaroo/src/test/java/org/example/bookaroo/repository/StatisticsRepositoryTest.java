@@ -55,14 +55,16 @@ class StatisticsRepositoryTest {
     }
 
     @Test
-    @DisplayName("should return correct count for books read this year")
+    @DisplayName("should return count for books read this year")
     void shouldReturnCount_forBooksReadThisYear() {
         // Given
         UUID shelfId = UUID.randomUUID();
         insertUser(userId);
         insertShelf(shelfId, userId, "Przeczytane");
+
         insertBookshelfBook(shelfId, UUID.randomUUID(), LocalDate.now());
-        insertBookshelfBook(shelfId, UUID.randomUUID(), LocalDate.now().minusMonths(1));
+
+        insertBookshelfBook(shelfId, UUID.randomUUID(), LocalDate.now().withDayOfYear(1));
 
         // When
         Map<String, Object> stats = statisticsRepository.getUserStats(userId);

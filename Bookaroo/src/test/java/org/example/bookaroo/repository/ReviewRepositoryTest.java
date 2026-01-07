@@ -15,7 +15,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -212,22 +211,28 @@ class ReviewRepositoryTest {
     void shouldReturnReviewsOrderedByDateDesc() {
         // Given
         Review oldReview = new Review(1, "Old", testUser, testBook);
-        oldReview.setCreatedAt(LocalDateTime.now().minusDays(1));
+        entityManager.persist(oldReview);
 
         Review newReview = new Review(5, "New", testUser, testBook);
-        newReview.setCreatedAt(LocalDateTime.now());
-
-        entityManager.persist(oldReview);
         entityManager.persist(newReview);
+
         entityManager.flush();
+
+        entityManager.getEntityManager()
+                .createNativeQuery("UPDATE reviews SET created_at = :date WHERE id = :id")
+                .setParameter("date", LocalDateTime.now().minusDays(1))
+                .setParameter("id", oldReview.getId())
+                .executeUpdate();
+
+        entityManager.clear();
 
         // When
         List<Review> result = reviewRepository.findByBookIdOrderByCreatedAtDesc(testBook.getId());
 
         // Then
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0).getContent()).isEqualTo("New");
-        assertThat(result.get(1).getContent()).isEqualTo("Old");
+        assertThat(result)
+                .extracting(Review::getContent)
+                .containsExactly("New", "Old");
     }
 
     @Test

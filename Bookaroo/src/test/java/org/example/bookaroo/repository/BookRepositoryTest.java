@@ -30,7 +30,6 @@ class BookRepositoryTest {
 
     private Author testAuthor;
     private Genre testGenre;
-    private Book testBook;
 
     @BeforeEach
     void setUp() {
@@ -43,7 +42,7 @@ class BookRepositoryTest {
         testGenre.setName("Fantasy");
         entityManager.persist(testGenre);
 
-        testBook = new Book();
+        Book testBook = new Book();
         testBook.setTitle("The Hobbit");
         testBook.setIsbn("123-456");
         testBook.setPublicationYear(1937);
