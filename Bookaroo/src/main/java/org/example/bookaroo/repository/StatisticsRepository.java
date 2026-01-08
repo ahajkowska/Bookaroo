@@ -37,10 +37,10 @@ public class StatisticsRepository {
             Integer readCount = jdbcTemplate.queryForObject(sqlRead, Integer.class, userId, currentYear);
 
             stats.put("readCount", readCount != null ? readCount : 0);
-            stats.put("currentYear", currentYear); // rok do widoku
+            stats.put("currentYear", currentYear);
 
         } catch (Exception e) {
-            System.err.println("Błąd SQL (Reading Challenge): " + e.getMessage());
+            System.err.println("Błąd SQL: " + e.getMessage());
             stats.put("readCount", 0);
             stats.put("currentYear", java.time.LocalDate.now().getYear());
         }
@@ -74,6 +74,7 @@ public class StatisticsRepository {
             Double avg = jdbcTemplate.queryForObject(sqlAvg, Double.class, bookId);
             if (avg != null) stats.put("avgRating", avg);
         } catch (Exception e) {
+            System.err.println("Błąd SQL (average): " + e.getMessage());
         }
 
         // rozkład ocen
