@@ -181,9 +181,9 @@
                             </span>
                             </div>
                             <h6 class="card-subtitle mb-3 text-muted">
-                        <span th:if="${book.author != null}"
-                              th:text="${book.author.name + ' ' + book.author.surname}">Autor</span>
-                                <span th:unless="${book.author != null}">Autor nieznany</span>
+                        <span th:if="${book.authorName != null}"
+                              th:text="${book.authorName}">Autor</span>
+                                <span th:unless="${book.authorName != null}">Autor nieznany</span>
                             </h6>
                             <span class="isbn-badge">
                             ISBN: <span th:text="${book.isbn}">numer ISBN</span>

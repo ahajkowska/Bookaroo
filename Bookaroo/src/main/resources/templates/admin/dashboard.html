@@ -256,12 +256,8 @@
                 <tr th:each="book : ${books}">
                     <td th:text="${book.title}" class="fw-bold">Tytuł</td>
                     <td>
-                        <th:block th:if="${book.author != null}">
-                            <span th:text="${book.author.name}">Imię</span>
-                            <span> </span>
-                            <span th:text="${book.author.surname}">Nazwisko</span>
-                        </th:block>
-                        <span th:if="${book.author == null}" style="color: #999; font-style: italic;">Brak autora</span>
+                        <span th:if="${book.authorName != null}" th:text="${book.authorName}">Autor</span>
+                        <span th:if="${book.authorName == null}" style="color: #999; font-style: italic;">Brak autora</span>
                     </td>
                     <td th:text="${book.isbn}">ISBN</td>
                     <td style="text-align: center;">
@@ -341,18 +337,18 @@
                               th:text="${user.role}">USER</span>
                     </td>
                     <td>
-                        <span th:if="${!user.isLocked}" class="badge bg-success">Aktywny</span>
-                        <span th:if="${user.isLocked}" class="badge bg-danger">ZABLOKOWANY</span>
+                        <span th:if="${!user.locked}" class="badge bg-success">Aktywny</span>
+                        <span th:if="${user.locked}" class="badge bg-danger">ZABLOKOWANY</span>
                     </td>
                     <td>
-                        <a th:if="${!user.isLocked}"
+                        <a th:if="${!user.locked}"
                            th:href="@{/admin/user/toggle-lock/{id}(id=${user.id})}"
                            class="btn btn-sm btn-outline-danger"
                            onclick="return confirm('Zablokować tego użytkownika?')">
                             Zablokuj
                         </a>
 
-                        <a th:if="${user.isLocked}"
+                        <a th:if="${user.locked}"
                            th:href="@{/admin/user/toggle-lock/{id}(id=${user.id})}"
                            class="btn btn-sm btn-success">
                             Odblokuj

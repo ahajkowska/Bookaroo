@@ -37,7 +37,7 @@
 
                 <div class="mb-3">
                     <label class="form-label">Wybierz Autora</label>
-                    <select th:field="*{author}" class="form-select">
+                    <select th:field="*{authorId}" class="form-select">
                         <option value="">-- Wybierz autora --</option>
                         <option th:each="a : ${authors}"
                                 th:value="${a.id}"
