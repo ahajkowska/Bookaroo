@@ -1,6 +1,8 @@
 package org.example.bookaroo.service;
 
 import jakarta.transaction.Transactional;
+import org.example.bookaroo.dto.ReviewDTO;
+import org.example.bookaroo.dto.mapper.ReviewMapper;
 import org.example.bookaroo.entity.Book;
 import org.example.bookaroo.entity.Review;
 import org.example.bookaroo.entity.User;
@@ -28,13 +30,45 @@ public class ReviewService {
     }
 
     @Transactional
-    public void addReview(UUID userId, UUID bookId, int rating, String content) {
-        User user = userRepository.findById(userId).orElseThrow();
-        Book book = bookRepository.findById(bookId).orElseThrow();
+    public void addReview(UUID userId, ReviewDTO dto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Book book = bookRepository.findById(dto.bookId())
+                .orElseThrow(() -> new IllegalArgumentException("Book not found"));
 
-        Review review = new Review(rating, content, user, book);
+        Review review = ReviewMapper.toEntity(dto, user, book);
         reviewRepository.saveAndFlush(review);
+        updateBookAverageRating(dto.bookId());
+    }
 
+
+    public List<ReviewDTO> getReviewsForBook(UUID bookId) {
+        return reviewRepository.findByBookIdOrderByCreatedAtDesc(bookId)
+                .stream()
+                .map(ReviewMapper::toDto)
+                .toList();
+    }
+
+    public List<ReviewDTO> getAllReviews() {
+        return reviewRepository.findAll()
+                .stream()
+                .map(ReviewMapper::toDto)
+                .toList();
+    }
+
+    @Transactional
+    public void deleteReview(UUID reviewId) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new IllegalArgumentException("Recenzja nie istnieje"));
+
+        UUID bookId = review.getBook().getId();
+
+        reviewRepository.deleteById(reviewId);
+
+        updateBookAverageRating(bookId);
+    }
+
+    private void updateBookAverageRating(UUID bookId) {
         List<Review> reviews = reviewRepository.findByBookIdOrderByCreatedAtDesc(bookId);
 
         double newAverage = reviews.stream()
@@ -43,18 +77,5 @@ public class ReviewService {
                 .orElse(0.0);
 
         bookService.updateBookRating(bookId, newAverage);
-    }
-
-    public List<Review> getReviewsForBook(UUID bookId) {
-        return reviewRepository.findByBookIdOrderByCreatedAtDesc(bookId);
-    }
-
-    public List<Review> getAllReviews() {
-        return reviewRepository.findAll();
-    }
-
-    @Transactional
-    public void deleteReview(UUID id) {
-        reviewRepository.deleteById(id);
     }
 }
