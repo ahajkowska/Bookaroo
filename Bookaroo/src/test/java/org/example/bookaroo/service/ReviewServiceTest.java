@@ -1,5 +1,6 @@
 package org.example.bookaroo.service;
 
+import org.example.bookaroo.dto.ReviewDTO;
 import org.example.bookaroo.entity.Book;
 import org.example.bookaroo.entity.Review;
 import org.example.bookaroo.entity.User;
@@ -45,15 +46,22 @@ class ReviewServiceTest {
         // Given
         UUID userId = UUID.randomUUID();
         UUID bookId = UUID.randomUUID();
+
+        ReviewDTO dto = new ReviewDTO(null, 5, "Great!", null, null, null, null, bookId);
+
         User user = new User();
+        user.setId(userId);
+
         Book book = new Book();
+        book.setId(bookId);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
+        // pusta lista recenzji, żeby średnia się policzyła
         when(reviewRepository.findByBookIdOrderByCreatedAtDesc(bookId)).thenReturn(List.of());
 
         // When
-        reviewService.addReview(userId, bookId, 5, "Great book!");
+        reviewService.addReview(userId, dto);
 
         // Then
         verify(reviewRepository).saveAndFlush(any(Review.class));
@@ -65,17 +73,17 @@ class ReviewServiceTest {
         // Given
         UUID userId = UUID.randomUUID();
         UUID bookId = UUID.randomUUID();
-        User user = new User();
-        Book book = new Book();
         String content = "Amazing content";
         int rating = 5;
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
+        ReviewDTO dto = new ReviewDTO(null, rating, content, null, null, null, null, bookId);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(new Book()));
         when(reviewRepository.findByBookIdOrderByCreatedAtDesc(bookId)).thenReturn(List.of());
 
         // When
-        reviewService.addReview(userId, bookId, rating, content);
+        reviewService.addReview(userId, dto);
 
         // Then
         ArgumentCaptor<Review> reviewCaptor = ArgumentCaptor.forClass(Review.class);
@@ -92,19 +100,20 @@ class ReviewServiceTest {
         // Given
         UUID userId = UUID.randomUUID();
         UUID bookId = UUID.randomUUID();
-
-        Review r1 = new Review(); r1.setRating(4);
-        Review r2 = new Review(); r2.setRating(5);
-        List<Review> mockReviews = List.of(r1, r2);
+        ReviewDTO dto = new ReviewDTO(null, 5, "New", null, null, null, null, bookId);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(new Book()));
-        when(reviewRepository.findByBookIdOrderByCreatedAtDesc(bookId)).thenReturn(mockReviews);
+
+        Review r1 = new Review(); r1.setRating(4);
+        Review r2 = new Review(); r2.setRating(5);
+        when(reviewRepository.findByBookIdOrderByCreatedAtDesc(bookId)).thenReturn(List.of(r1, r2));
 
         // When
-        reviewService.addReview(userId, bookId, 5, "New review");
+        reviewService.addReview(userId, dto);
 
         // Then
+        // (4 + 5) / 2 = 4.5
         verify(bookService).updateBookRating(bookId, 4.5);
     }
 
@@ -114,13 +123,15 @@ class ReviewServiceTest {
         // Given
         UUID userId = UUID.randomUUID();
         UUID bookId = UUID.randomUUID();
+        ReviewDTO dto = new ReviewDTO(null, 5, "New", null, null, null, null, bookId);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(new Book()));
+
         when(reviewRepository.findByBookIdOrderByCreatedAtDesc(bookId)).thenReturn(List.of());
 
         // When
-        reviewService.addReview(userId, bookId, 5, "content");
+        reviewService.addReview(userId, dto);
 
         // Then
         verify(bookService).updateBookRating(bookId, 0.0);
@@ -129,14 +140,13 @@ class ReviewServiceTest {
     @Test
     @DisplayName("should throw exception when user not found")
     void shouldThrowException_whenUserNotFound() {
-        // Given
         UUID userId = UUID.randomUUID();
-        UUID bookId = UUID.randomUUID();
+        ReviewDTO dto = new ReviewDTO(null, 5, "C", null, null, null, null, UUID.randomUUID());
+
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        // When & Then
-        assertThatThrownBy(() -> reviewService.addReview(userId, bookId, 5, "content"))
-                .isInstanceOf(NoSuchElementException.class);
+        assertThatThrownBy(() -> reviewService.addReview(userId, dto))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -145,13 +155,14 @@ class ReviewServiceTest {
         // Given
         UUID userId = UUID.randomUUID();
         UUID bookId = UUID.randomUUID();
+        ReviewDTO dto = new ReviewDTO(null, 5, "content", null, null, null, null, bookId);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
         when(bookRepository.findById(bookId)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> reviewService.addReview(userId, bookId, 5, "content"))
-                .isInstanceOf(NoSuchElementException.class);
+        assertThatThrownBy(() -> reviewService.addReview(userId, dto))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -159,28 +170,45 @@ class ReviewServiceTest {
     void shouldReturnReviews_whenGettingForBook() {
         // Given
         UUID bookId = UUID.randomUUID();
-        List<Review> reviews = List.of(new Review(), new Review());
-        when(reviewRepository.findByBookIdOrderByCreatedAtDesc(bookId)).thenReturn(reviews);
+
+        User user = new User();
+        user.setUsername("TestUser");
+
+        Book book = new Book();
+        book.setId(bookId);
+
+        Review review = new Review(5, "Content", user, book);
+
+        when(reviewRepository.findByBookIdOrderByCreatedAtDesc(bookId)).thenReturn(List.of(review));
 
         // When
-        List<Review> result = reviewService.getReviewsForBook(bookId);
+        List<ReviewDTO> result = reviewService.getReviewsForBook(bookId);
 
         // Then
-        assertThat(result).hasSize(2);
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).username()).isEqualTo("TestUser");
+        assertThat(result.get(0).content()).isEqualTo("Content");
     }
 
     @Test
     @DisplayName("should return all reviews")
     void shouldReturnAllReviews_whenCalled() {
         // Given
-        List<Review> reviews = List.of(new Review());
-        when(reviewRepository.findAll()).thenReturn(reviews);
+        User user = new User();
+        user.setUsername("User1");
+        Book book = new Book();
+        book.setId(UUID.randomUUID());
+
+        Review review = new Review(5, "Content", user, book);
+
+        when(reviewRepository.findAll()).thenReturn(List.of(review));
 
         // When
-        List<Review> result = reviewService.getAllReviews();
+        List<ReviewDTO> result = reviewService.getAllReviews();
 
         // Then
         assertThat(result).isNotEmpty();
+        assertThat(result.get(0)).isInstanceOf(ReviewDTO.class);
     }
 
     @Test
@@ -188,11 +216,23 @@ class ReviewServiceTest {
     void shouldCallDelete_whenDeletingReview() {
         // Given
         UUID reviewId = UUID.randomUUID();
+        UUID bookId = UUID.randomUUID();
+
+        Book book = new Book();
+        book.setId(bookId);
+
+        Review review = new Review();
+        review.setId(reviewId);
+        review.setBook(book);
+
+        when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
+        when(reviewRepository.findByBookIdOrderByCreatedAtDesc(bookId)).thenReturn(List.of());
 
         // When
         reviewService.deleteReview(reviewId);
 
         // Then
         verify(reviewRepository).deleteById(reviewId);
+        verify(bookService).updateBookRating(bookId, 0.0);
     }
 }

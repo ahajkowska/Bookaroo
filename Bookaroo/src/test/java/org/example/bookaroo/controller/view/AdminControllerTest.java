@@ -1,6 +1,7 @@
 package org.example.bookaroo.controller.view;
 
 import org.example.bookaroo.config.SecurityConfig;
+import org.example.bookaroo.dto.BookDTO;
 import org.example.bookaroo.entity.Book;
 import org.example.bookaroo.service.BookService;
 import org.example.bookaroo.service.ReviewService;
@@ -81,13 +82,25 @@ class AdminControllerTest {
     @DisplayName("POST /admin/book/save - Should save and redirect")
     @WithMockUser(roles = "ADMIN")
     void shouldSaveBook() throws Exception {
+        BookDTO newBookDto = new BookDTO(
+                null, // id (null = create)
+                "Testowy Tytuł",
+                "978-83-123",
+                "Opis testowy",
+                2024,
+                UUID.randomUUID(),
+                null,
+                null,
+                null
+        );
+
         mockMvc.perform(post("/admin/book/save")
                         .with(csrf())
-                        .flashAttr("book", new Book()))
+                        .flashAttr("bookDTO", newBookDto))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/dashboard"));
 
-        verify(bookService).save(any(Book.class));
+        verify(bookService).createBook(any(BookDTO.class));
     }
 
     @Test
@@ -95,16 +108,18 @@ class AdminControllerTest {
     @WithMockUser(roles = "ADMIN")
     void shouldShowEditBookForm() throws Exception {
         UUID id = UUID.randomUUID();
-        Book book = new Book();
-        book.setId(id);
+        BookDTO bookDto = new BookDTO(
+                id, "Tytuł", "ISBN", "Opis", 2024,
+                UUID.randomUUID(), "Autor", 0.0, Collections.emptyList()
+        );
 
-        when(bookService.findById(id)).thenReturn(Optional.of(book));
+        when(bookService.getBookDetails(id)).thenReturn(bookDto);
         when(bookService.getAllAuthors()).thenReturn(Collections.emptyList());
 
         mockMvc.perform(get("/admin/book/edit/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/book-form"))
-                .andExpect(model().attribute("book", hasProperty("id", is(id))));
+                .andExpect(model().attribute("book", bookDto));
     }
 
     @Test

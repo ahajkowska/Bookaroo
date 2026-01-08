@@ -329,7 +329,7 @@ class BookServiceTest {
         Double newRating = 4.5;
 
         // When
-        bookService.updateBookRating(bookId, newRating);
+        bookService.updateBookRatingViaSql(bookId, newRating);
 
         // Then
         verify(bookJdbcDao).updateBookRating(bookId, newRating);

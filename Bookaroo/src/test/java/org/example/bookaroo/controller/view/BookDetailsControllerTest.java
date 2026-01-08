@@ -2,8 +2,9 @@ package org.example.bookaroo.controller.view;
 
 import org.example.bookaroo.config.SecurityConfig;
 import org.example.bookaroo.dto.BookDTO;
-import org.example.bookaroo.entity.Book;
+import org.example.bookaroo.dto.ReviewDTO;
 import org.example.bookaroo.entity.Bookshelf;
+import org.example.bookaroo.exception.ResourceNotFoundException;
 import org.example.bookaroo.service.BookService;
 import org.example.bookaroo.service.BookshelfService;
 import org.example.bookaroo.service.CustomUserDetailsService;
@@ -19,13 +20,19 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.*;
 
-import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.*;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.hasKey;
 
 @WebMvcTest(BookDetailsController.class)
 @Import(SecurityConfig.class)
@@ -104,13 +111,12 @@ class BookDetailsControllerTest {
     @DisplayName("GET /book/{id} - Książka nieznaleziona (404)")
     void shouldReturnError_WhenBookNotFound() throws Exception {
         UUID bookId = UUID.randomUUID();
-        when(bookService.findById(bookId)).thenReturn(Optional.empty());
 
-        try {
-            mockMvc.perform(get("/book/{id}", bookId))
-                    .andExpect(status().is5xxServerError());
-        } catch (Exception e) {
-        }
+        when(bookService.getBookDetails(bookId))
+                .thenThrow(new ResourceNotFoundException("Book", "id", bookId));
+
+        mockMvc.perform(get("/book/{id}", bookId))
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -119,6 +125,7 @@ class BookDetailsControllerTest {
         UUID userId = UUID.randomUUID();
         UUID bookId = UUID.randomUUID();
 
+        // Mockowanie użytkownika
         CustomUserDetailsService.BookarooUserDetails mockPrincipal = mock(CustomUserDetailsService.BookarooUserDetails.class);
         when(mockPrincipal.getId()).thenReturn(userId);
         when(mockPrincipal.getUsername()).thenReturn("user");
@@ -134,7 +141,7 @@ class BookDetailsControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/book/" + bookId));
 
-        verify(reviewService).addReview(userId, bookId, 5, "Super!");
+        verify(reviewService).addReview(eq(userId), any(ReviewDTO.class));
     }
 
     @Test
