@@ -6,6 +6,8 @@ import com.opencsv.CSVWriter;
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
+import org.example.bookaroo.dto.ReviewBackupDTO;
+import org.example.bookaroo.dto.ShelfBackupDTO;
 import org.example.bookaroo.dto.UserBackupDTO;
 import org.example.bookaroo.entity.Book;
 import org.example.bookaroo.entity.Bookshelf;
@@ -57,7 +59,7 @@ public class BackupService {
     @Transactional(readOnly = true)
     public byte[] exportUserDataToJson(String username) throws IOException {
         UserBackupDTO backupData = gatherUserData(username);
-        // Konwersja obiektu Java na bajty JSON
+        // obiekt Java na JSON
         return objectMapper.writeValueAsBytes(backupData);
     }
 
@@ -67,7 +69,6 @@ public class BackupService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Nie znaleziono użytkownika o loginie: " + username));
         try (StringWriter sw = new StringWriter()) {
-
             sw.write('\uFEFF'); // polski
 
             // separator na średnik (';')
@@ -151,13 +152,13 @@ public class BackupService {
                 .orElseThrow(() -> new ResourceNotFoundException("Nie znaleziono użytkownika: " + username));
 
         var shelfDtos = user.getBookshelves().stream().map(
-                shelf -> new org.example.bookaroo.dto.ShelfBackupDTO(
+                shelf -> new ShelfBackupDTO(
                 shelf.getName(),
                 shelf.getBooks().stream().map(Book::getIsbn).toList()
         )).toList();
 
         var reviewDtos = user.getGivenReviews().stream().map(
-                review -> new org.example.bookaroo.dto.ReviewBackupDTO(
+                review -> new ReviewBackupDTO(
                 review.getBook().getIsbn(),
                 review.getContent(),
                 review.getRating()

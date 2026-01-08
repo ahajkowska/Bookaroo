@@ -34,6 +34,14 @@ public class BookService {
         this.authorRepository = authorRepository;
     }
 
+    @Transactional(readOnly = true)
+    public BookDTO getBookDetails(UUID id) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Book", "id", id));
+
+        return BookMapper.toDto(book);
+    }
+
     @Transactional
     public BookDTO createBook(BookDTO bookDto) {
         Author author = authorRepository.findById(bookDto.authorId())
@@ -66,6 +74,42 @@ public class BookService {
     }
 
     @Transactional
+    public void deleteById(UUID id) {
+        bookRepository.deleteById(id);
+    }
+
+    public Page<Book> findAll(Pageable pageable) {
+        return bookRepository.findAll(pageable);
+    }
+
+    public Page<Book> findByGenresId(UUID genreId, Pageable pageable) {
+        return bookRepository.findByGenresId(genreId, pageable);
+    }
+
+    public Optional<Book> findById(UUID id) {
+        return bookRepository.findById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public List<BookDTO> searchBooksList(String query) {
+        return bookRepository.searchBooks(query)
+                .stream()
+                .map(BookMapper::toDto)
+                .toList();
+    }
+
+    public Page<Book> searchBooks(String query, Pageable pageable) {
+        return bookRepository.searchBooks(query, pageable);
+    }
+
+    public Page<Book> getBooksByAuthorId(UUID authorId, Pageable pageable) {
+        Author author = authorRepository.findById(authorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Author", "id", authorId));
+
+        return bookRepository.findByAuthor(author, pageable);
+    }
+
+    @Transactional
     public void createBookViaSql(Book book) {
         bookDAO.insertBook(book);
     }
@@ -83,40 +127,6 @@ public class BookService {
                 .toList();
     }
 
-    public Page<Book> findAll(Pageable pageable) {
-        return bookRepository.findAll(pageable);
-    }
-
-    public Optional<Book> findById(UUID id) {
-        return bookRepository.findById(id);
-    }
-
-    @Transactional
-    public Book save(Book book) {
-        return bookRepository.save(book);
-    }
-
-    @Transactional
-    public void deleteById(UUID id) {
-        bookRepository.deleteById(id);
-    }
-
-    @Transactional(readOnly = true)
-    public List<BookDTO> searchBooksList(String query) {
-        return bookRepository.searchBooks(query)
-                .stream()
-                .map(BookMapper::toDto)
-                .toList();
-    }
-
-    public Page<Book> searchBooks(String query, Pageable pageable) {
-        return bookRepository.searchBooks(query, pageable);
-    }
-
-    public Page<Book> findByGenresId(UUID genreId, Pageable pageable) {
-        return bookRepository.findByGenresId(genreId, pageable);
-    }
-
     public List<Book> getTopRatedBooksViaSql(int limit) {
         return bookDAO.findTopRatedBooks(limit);
     }
@@ -125,23 +135,17 @@ public class BookService {
         return bookDAO.findBooksByPublicationYear(year);
     }
 
-    public Page<Book> getBooksByAuthorId(UUID authorId, Pageable pageable) {
-        Author author = authorRepository.findById(authorId)
-                .orElseThrow(() -> new ResourceNotFoundException("Author", "id", authorId));
-
-        return bookRepository.findByAuthor(author, pageable);
-    }
-
-    public void updateBookRating(UUID bookId, Double newRating) {
+    public void updateBookRatingViaSql(UUID bookId, Double newRating) {
         bookDAO.updateBookRating(bookId, newRating);
     }
 
-    @Transactional(readOnly = true)
-    public BookDTO getBookDetails(UUID id) {
-        Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Book", "id", id));
+    @Transactional
+    public void updateBookRating(UUID bookId, double newAverageRating) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new IllegalArgumentException("Książka nie istnieje o ID: " + bookId));
 
-        return BookMapper.toDto(book);
+        book.setAverageRating(newAverageRating);
+        bookRepository.save(book);
     }
 
     public Map<String, Object> getBookStatistics(UUID bookId) {

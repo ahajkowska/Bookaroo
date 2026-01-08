@@ -1,5 +1,6 @@
 package org.example.bookaroo.controller.view;
 
+import org.example.bookaroo.dto.BookDTO;
 import org.example.bookaroo.entity.Author;
 import org.example.bookaroo.entity.Book;
 import org.example.bookaroo.service.BookService;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 @Controller
@@ -38,32 +40,37 @@ public class AdminController {
 
     @GetMapping("/book/add")
     public String showAddBookForm(Model model) {
-        model.addAttribute("book", new Book());
+        BookDTO emptyBook = new BookDTO(null, "", "", "", 2024, null, "", 0.0, new ArrayList<>());
+
+        model.addAttribute("book", emptyBook);
         model.addAttribute("authors", bookService.getAllAuthors());
         return "admin/book-form";
     }
 
     @PostMapping("/book/save")
-    public String saveBook(@ModelAttribute Book book) {
-        bookService.save(book);
+    public String saveBook(@ModelAttribute BookDTO bookDto) {
+        if (bookDto.id() == null) {
+            bookService.createBook(bookDto);
+        } else {
+            bookService.updateBook(bookDto.id(), bookDto);
+        }
         return "redirect:/admin/dashboard";
+    }
+
+    @GetMapping("/book/edit/{id}")
+    public String showEditBookForm(@PathVariable UUID id, Model model) {
+        BookDTO bookDto = bookService.getBookDetails(id);
+
+        model.addAttribute("book", bookDto);
+        model.addAttribute("authors", bookService.getAllAuthors());
+
+        return "admin/book-form";
     }
 
     @GetMapping("/book/delete/{id}")
     public String deleteBook(@PathVariable UUID id) {
         bookService.deleteById(id);
         return "redirect:/admin/dashboard";
-    }
-
-    @GetMapping("/book/edit/{id}")
-    public String showEditBookForm(@PathVariable UUID id, Model model) {
-        Book book = bookService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Nieprawidłowe ID książki: " + id));
-
-        model.addAttribute("book", book);
-        model.addAttribute("authors", bookService.getAllAuthors());
-
-        return "admin/book-form";
     }
 
     // formularz dodawania autora
