@@ -1,6 +1,7 @@
 package org.example.bookaroo.service;
 
 import org.example.bookaroo.dto.BookDTO;
+import org.example.bookaroo.dto.BookStatisticsDTO;
 import org.example.bookaroo.dto.mapper.BookMapper;
 import org.example.bookaroo.entity.Book;
 import org.example.bookaroo.entity.Author;
@@ -11,10 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class BookService {
@@ -148,8 +146,46 @@ public class BookService {
         bookRepository.save(book);
     }
 
-    public Map<String, Object> getBookStatistics(UUID bookId) {
-        return statisticsRepository.getBookStats(bookId);
+    public BookStatisticsDTO getBookStatistics(UUID bookId) {
+        Map<Integer, Integer> ratingDistribution = new HashMap<>();
+        for (int i = 1; i <= 10; i++) {
+            ratingDistribution.put(i, 0);
+        }
+
+        long readersCount = 0;
+        double avgRating = 0.0;
+
+        try {
+            Integer count = statisticsRepository.getReadersCount(bookId);
+            if (count != null) {
+                readersCount = count;
+            }
+
+            Double avg = statisticsRepository.getAverageRating(bookId);
+            if (avg != null) {
+                avgRating = avg;
+            }
+
+            List<Map<String, Object>> rawDist = statisticsRepository.getRawRatingDistribution(bookId);
+
+            for (Map<String, Object> row : rawDist) {
+                Number ratingNum = (Number) row.get("rating");
+                Number countNum = (Number) row.get("count");
+
+                if (ratingNum != null && countNum != null) {
+                    int r = ratingNum.intValue();
+                    int c = countNum.intValue();
+                    if (r >= 1 && r <= 10) {
+                        ratingDistribution.put(r, c);
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            System.err.println("Błąd podczas pobierania statystyk: " + e.getMessage());
+        }
+
+        return new BookStatisticsDTO(readersCount, avgRating, ratingDistribution);
     }
 
     public Map<UUID, Double> getAllBookAverageRatings() {

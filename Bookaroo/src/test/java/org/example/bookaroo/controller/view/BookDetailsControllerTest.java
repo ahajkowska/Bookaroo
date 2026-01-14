@@ -2,6 +2,7 @@ package org.example.bookaroo.controller.view;
 
 import org.example.bookaroo.config.SecurityConfig;
 import org.example.bookaroo.dto.BookDTO;
+import org.example.bookaroo.dto.BookStatisticsDTO;
 import org.example.bookaroo.dto.ReviewDTO;
 import org.example.bookaroo.entity.Bookshelf;
 import org.example.bookaroo.exception.ResourceNotFoundException;
@@ -20,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.*;
 
+import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -29,10 +31,6 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.hasKey;
 
 @WebMvcTest(BookDetailsController.class)
 @Import(SecurityConfig.class)
@@ -53,8 +51,9 @@ class BookDetailsControllerTest {
     // Wyświetlanie szczegółów (Anonim)
 
     @Test
-    @DisplayName("GET /book/{id} - Niezalogowani nie widzą statystyk książki")
+    @DisplayName("GET /book/{id} - Niezalogowani widzą ogólne statystyki, ale nie swoje półki")
     void shouldShowBookDetails_WhenAnonymous() throws Exception {
+        // Given
         UUID bookId = UUID.randomUUID();
 
         BookDTO bookDto = new BookDTO(
@@ -62,16 +61,22 @@ class BookDetailsControllerTest {
                 UUID.randomUUID(), "Jan Kowalski", 4.5, List.of("Fantasy")
         );
 
+        BookStatisticsDTO statsDto = createMockStats();
+
         when(bookService.getBookDetails(bookId)).thenReturn(bookDto);
         when(reviewService.getReviewsForBook(bookId)).thenReturn(Collections.emptyList());
-        when(bookService.getBookStatistics(bookId)).thenReturn(createMockStats());
+        when(bookService.getBookStatistics(bookId)).thenReturn(statsDto);
 
+        // When & Then
         mockMvc.perform(get("/book/{id}", bookId))
                 .andExpect(status().isOk())
                 .andExpect(view().name("book-details"))
-                .andExpect(model().attribute("book", notNullValue()))
-                .andExpect(model().attribute("stats", hasKey("ratingDistribution")));
 
+                .andExpect(model().attribute("book", notNullValue()))
+
+                .andExpect(model().attribute("stats", statsDto));
+
+        // dla niezalogowanego nie wołamy serwisu półek
         verifyNoInteractions(bookshelfService);
     }
 
@@ -164,17 +169,22 @@ class BookDetailsControllerTest {
     }
 
     // m. pomocnicza
-    private Map<String, Object> createMockStats() {
-        Map<String, Object> stats = new HashMap<>();
-        stats.put("avgRating", 4.5);
-        stats.put("ratingCount", 10);
-
+    private BookStatisticsDTO createMockStats() {
         Map<Integer, Integer> distribution = new HashMap<>();
-        for (int i = 1; i <= 5; i++) {
-            distribution.put(i, 2); // po 2 głosy na każdą gwiazdkę
-        }
-        stats.put("ratingDistribution", distribution);
 
-        return stats;
+        // wypełnianie danymi (1-5 po 2 głosy, reszta 0)
+        for (int i = 1; i <= 10; i++) {
+            if (i <= 5) {
+                distribution.put(i, 2);
+            } else {
+                distribution.put(i, 0);
+            }
+        }
+
+        return new BookStatisticsDTO(
+                10L,
+                4.5,
+                distribution // ratingDistribution (Map<Integer, Integer>)
+        );
     }
 }

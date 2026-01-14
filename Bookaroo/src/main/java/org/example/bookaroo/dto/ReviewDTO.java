@@ -1,6 +1,5 @@
 package org.example.bookaroo.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -15,7 +14,7 @@ public record ReviewDTO(
         UUID id,
 
         @Min(value = 1, message = "Ocena musi być min. 1")
-        @Max(value = 5, message = "Ocena może być max. 5")
+        @Max(value = 10, message = "Ocena może być max. 10")
         int rating,
 
         @NotBlank(message = "Treść recenzji nie może być pusta")

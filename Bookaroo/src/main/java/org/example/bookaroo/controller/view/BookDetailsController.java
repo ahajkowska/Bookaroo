@@ -1,11 +1,10 @@
 package org.example.bookaroo.controller.view;
 
+import jakarta.validation.Valid;
 import org.example.bookaroo.dto.BookDTO;
+import org.example.bookaroo.dto.BookStatisticsDTO;
 import org.example.bookaroo.dto.ReviewDTO;
-import org.example.bookaroo.dto.mapper.BookMapper;
-import org.example.bookaroo.entity.Book;
 import org.example.bookaroo.entity.Bookshelf;
-import org.example.bookaroo.entity.Review;
 import org.example.bookaroo.service.BookService;
 import org.example.bookaroo.service.BookshelfService;
 import org.example.bookaroo.service.CustomUserDetailsService;
@@ -40,7 +39,7 @@ public class BookDetailsController {
 
         List<ReviewDTO> reviews = reviewService.getReviewsForBook(id);
 
-        Map<String, Object> stats = bookService.getBookStatistics(id);
+        BookStatisticsDTO stats = bookService.getBookStatistics(id);
 
         model.addAttribute("stats", stats);
         model.addAttribute("book", bookDto);
@@ -63,7 +62,7 @@ public class BookDetailsController {
     @PostMapping("/review/add")
     public String addReview(
             @AuthenticationPrincipal UserDetails currentUser,
-            @ModelAttribute ReviewDTO reviewDto
+            @Valid @ModelAttribute ReviewDTO reviewDto
     ) {
         if (currentUser instanceof CustomUserDetailsService.BookarooUserDetails userDetails) {
             UUID userId = userDetails.getId();

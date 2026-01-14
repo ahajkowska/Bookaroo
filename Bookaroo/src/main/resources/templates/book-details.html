@@ -172,12 +172,12 @@
             <div class="row align-items-center">
                 <div class="col-md-4 text-center border-end">
                     <div class="display-1 fw-bold text-warning">
-                        <span th:text="${#numbers.formatDecimal(stats['avgRating'], 1, 1)}">8.5</span>
+                        <span th:text="${#numbers.formatDecimal(stats.averageRating, 1, 1)}"></span>
                     </div>
                     <div class="text-muted mb-3">Średnia ocena</div>
 
                     <div class="d-inline-block px-3 py-2 rounded-pill bg-light border">
-                        <span class="fw-bold" th:text="${stats['readersCount']}">120</span>
+                        <span class="fw-bold" th:text="${stats.readersCount}">120</span>
                         <span class="text-muted small">czytelników ma to na półce</span>
                     </div>
                 </div>
@@ -199,7 +199,7 @@
                         </div>
 
                         <div style="width: 40px;" class="text-start ms-2 text-muted small">
-                            (<span th:text="${stats['ratingDistribution'].get(i)}">0</span>)
+                            (<span th:text="${stats.ratingDistribution.get(i)}">0</span>)
                         </div>
                     </div>
                 </div>

@@ -1,6 +1,7 @@
 package org.example.bookaroo.service;
 
 import org.example.bookaroo.dto.BookDTO;
+import org.example.bookaroo.dto.BookStatisticsDTO;
 import org.example.bookaroo.entity.Author;
 import org.example.bookaroo.entity.Book;
 import org.example.bookaroo.exception.ResourceNotFoundException;
@@ -336,17 +337,76 @@ class BookServiceTest {
     }
 
     @Test
-    @DisplayName("should delegate stats retrieval to statistics repository")
-    void shouldDelegateStatsRetrieval() {
+    @DisplayName("should aggregate stats from repository")
+    void shouldGetBookStatistics() {
         // Given
         UUID bookId = UUID.randomUUID();
-        when(statisticsRepository.getBookStats(bookId)).thenReturn(Map.of("avg", 4.5));
+
+        when(statisticsRepository.getReadersCount(bookId)).thenReturn(10);
+        when(statisticsRepository.getAverageRating(bookId)).thenReturn(4.5);
+
+        List<Map<String, Object>> rawSqlRows = List.of(
+                Map.of("rating", 5, "count", 2),
+                Map.of("rating", 1, "count", 1)
+        );
+        when(statisticsRepository.getRawRatingDistribution(bookId)).thenReturn(rawSqlRows);
 
         // When
-        Map<String, Object> result = bookService.getBookStatistics(bookId);
+        BookStatisticsDTO result = bookService.getBookStatistics(bookId);
 
         // Then
-        assertThat(result).containsEntry("avg", 4.5);
+        assertThat(result.readersCount()).isEqualTo(10);
+        assertThat(result.averageRating()).isEqualTo(4.5);
+
+        assertThat(result.ratingDistribution())
+                .hasSize(10)
+                .containsEntry(5, 2)
+                .containsEntry(1, 1)
+                .containsEntry(2, 0) // domyślne (0)
+                .containsEntry(10, 0);
+    }
+
+    @Test
+    @DisplayName("should return 0 stats for non-existent book (handle nulls from repo)")
+    void shouldReturnZeroStats_forNonExistentBook() {
+        // Given
+        UUID nonExistentId = UUID.randomUUID();
+
+        // baza nie zwraca nic (null dla średniej, pusta lista dla rozkładu)
+        when(statisticsRepository.getReadersCount(nonExistentId)).thenReturn(0);
+        when(statisticsRepository.getAverageRating(nonExistentId)).thenReturn(null);
+        when(statisticsRepository.getRawRatingDistribution(nonExistentId)).thenReturn(Collections.emptyList());
+
+        // When
+        BookStatisticsDTO result = bookService.getBookStatistics(nonExistentId);
+
+        // Then
+        assertThat(result.readersCount()).isEqualTo(0);
+        assertThat(result.averageRating()).isEqualTo(0.0);
+
+        assertThat(result.ratingDistribution())
+                .hasSize(10)
+                .containsEntry(5, 0)
+                .containsEntry(1, 0)
+                .containsEntry(10, 0);
+    }
+
+    @Test
+    @DisplayName("should handle nulls from repository and return default zero stats")
+    void shouldReturnZeroStats_WhenRepoReturnsNulls() {
+        // Given
+        UUID bookId = UUID.randomUUID();
+
+        when(statisticsRepository.getReadersCount(bookId)).thenReturn(0);
+        when(statisticsRepository.getAverageRating(bookId)).thenReturn(null);
+        when(statisticsRepository.getRawRatingDistribution(bookId)).thenReturn(Collections.emptyList());
+
+        // When
+        BookStatisticsDTO result = bookService.getBookStatistics(bookId);
+
+        // Then
+        assertThat(result.averageRating()).isEqualTo(0.0);
+        assertThat(result.ratingDistribution()).containsEntry(5, 0);
     }
 
     // AUTHOR MANAGEMENT

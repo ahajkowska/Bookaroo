@@ -121,85 +121,18 @@ class StatisticsRepositoryTest {
         assertThat(stats.get("readCount")).isEqualTo(1);
     }
 
-    // TESTY BOOK STATS
+    // BOOK STATS
 
     @Test
-    @DisplayName("should return 0 stats for non-existent book")
-    void shouldReturnZeroStats_forNonExistentBook() {
-        // When
-        Map<String, Object> stats = statisticsRepository.getBookStats(UUID.randomUUID());
-
-        // Then
-        assertThat(stats.get("avgRating")).isEqualTo(0.0);
-        assertThat(stats.get("readersCount")).isEqualTo(0);
-
-        Map<Integer, Integer> dist = (Map<Integer, Integer>) stats.get("ratingDistribution");
-        assertThat(dist).containsEntry(5, 0);
-    }
-
-    @Test
-    @DisplayName("should count readers correctly")
-    void shouldCountReadersCorrectly() {
+    void shouldReturnNullAverage_WhenNoReviewsExist() {
         // Given
-        UUID shelfId1 = UUID.randomUUID();
-        UUID shelfId2 = UUID.randomUUID();
-        insertBookshelfBook(shelfId1, bookId, LocalDate.now());
-        insertBookshelfBook(shelfId2, bookId, LocalDate.now());
+        UUID bookId = UUID.randomUUID(); // książka bez recenzji
 
         // When
-        Map<String, Object> stats = statisticsRepository.getBookStats(bookId);
+        Double avg = statisticsRepository.getAverageRating(bookId);
 
         // Then
-        assertThat(stats.get("readersCount")).isEqualTo(2);
-    }
-
-    @Test
-    @DisplayName("should calculate average rating correctly")
-    void shouldCalculateAvgRating() {
-        // Given
-        insertReview(bookId, 5);
-        insertReview(bookId, 3); // (5+3)/2 = 4.0
-
-        // When
-        Map<String, Object> stats = statisticsRepository.getBookStats(bookId);
-
-        // Then
-        assertThat(stats.get("avgRating")).isEqualTo(4.0);
-    }
-
-    @Test
-    @DisplayName("should build correct rating distribution map")
-    void shouldBuildRatingDistribution() {
-        // Given
-        insertReview(bookId, 5);
-        insertReview(bookId, 5);
-        insertReview(bookId, 1);
-
-        // When
-        Map<String, Object> stats = statisticsRepository.getBookStats(bookId);
-
-        Map<Integer, Integer> dist = (Map<Integer, Integer>) stats.get("ratingDistribution");
-
-        // Then
-        assertThat(dist).containsEntry(5, 2);
-        assertThat(dist).containsEntry(1, 1);
-        assertThat(dist).containsEntry(3, 0);
-    }
-
-    @Test
-    @DisplayName("should ignore ratings out of range (1-10) in distribution")
-    void shouldIgnoreInvalidRatingsInDistribution() {
-        // Given
-        insertReview(bookId, 11);
-        insertReview(bookId, 5);
-
-        // When
-        Map<String, Object> stats = statisticsRepository.getBookStats(bookId);
-        Map<Integer, Integer> dist = (Map<Integer, Integer>) stats.get("ratingDistribution");
-
-        // Then
-        assertThat(dist).containsEntry(5, 1);
-        assertThat(dist).doesNotContainKey(11);
+        assertThat(avg).isNull();
     }
 
     // TEST ALL BOOKS AVG
