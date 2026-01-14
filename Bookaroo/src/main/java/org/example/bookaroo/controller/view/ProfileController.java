@@ -1,6 +1,7 @@
 package org.example.bookaroo.controller.view;
 
 import org.example.bookaroo.dto.BookshelfDTO;
+import org.example.bookaroo.dto.UserStatisticsDTO;
 import org.example.bookaroo.entity.User;
 import org.example.bookaroo.service.BackupService;
 import org.example.bookaroo.service.BookshelfService;
@@ -44,7 +45,7 @@ public class ProfileController {
 
         List<BookshelfDTO> shelvesDtos = bookshelfService.getUserShelvesWithDetails(userId);
 
-        Map<String, Object> stats = userService.getUserStats(userId);
+        UserStatisticsDTO stats = userService.getUserStats(userId);
 
         // czy to właściciel? (edycja i backup)
         boolean isOwner = currentUser != null && currentUser.getUsername().equals(user.getUsername());

@@ -3,6 +3,7 @@ package org.example.bookaroo.service;
 import org.example.bookaroo.dto.CreateUserDTO;
 import org.example.bookaroo.dto. UpdateUserDTO;
 import org. example.bookaroo.dto.UserDTO;
+import org.example.bookaroo.dto.UserStatisticsDTO;
 import org.example.bookaroo.dto.mapper.UserMapper;
 import org.example.bookaroo.entity.*;
 import org.example.bookaroo.exception.ResourceNotFoundException;
@@ -163,8 +164,24 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
     }
 
-    public Map<String, Object> getUserStats(UUID userId) {
-        return statisticsRepository.getUserStats(userId);
+    public UserStatisticsDTO getUserStats(UUID userId) {
+        int currentYear = java.time.LocalDate.now().getYear();
+
+        String challengeShelfName = "przeczytane";
+
+        int readCount = 0;
+
+        try {
+            Integer result = statisticsRepository.countBooksOnShelfInYear(userId, challengeShelfName, currentYear);
+            if (result != null) {
+                readCount = result;
+            }
+        } catch (Exception e) {
+            System.err.println("Nie udało się pobrać statystyk czytania: " + e.getMessage());
+            readCount = 0; // w razie błędu do pokazania 0
+        }
+
+        return new UserStatisticsDTO(readCount, currentYear);
     }
 
     @Transactional

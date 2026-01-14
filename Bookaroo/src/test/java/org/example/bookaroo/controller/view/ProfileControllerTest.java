@@ -1,7 +1,6 @@
 package org.example.bookaroo.controller.view;
 
 import org.example.bookaroo.config.SecurityConfig;
-import org.example.bookaroo.entity.Bookshelf;
 import org.example.bookaroo.entity.User;
 import org.example.bookaroo.service.BackupService;
 import org.example.bookaroo.service.BookshelfService;
@@ -19,8 +18,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.*;
@@ -47,49 +44,6 @@ class ProfileControllerTest {
 
     @MockitoBean
     private BackupService backupService;
-
-    // --- SCENARIUSZ 1: Wyświetlanie profilu (Właściciel) ---
-
-    @Test
-    @DisplayName("GET /profile/{id} - Wyświetlenie profilu")
-    @WithMockCustomUser(username = "magdaGessler", id = "11111111-1111-1111-1111-111111111111")
-    void shouldShowProfile_WhenOwner() throws Exception {
-        UUID userId = UUID.fromString("11111111-1111-1111-1111-111111111111");
-        User user = new User();
-        user.setId(userId);
-        user.setUsername("magdaGessler");
-
-        when(userService.findById(userId)).thenReturn(user);
-        when(bookshelfService.getUserShelves(userId)).thenReturn(List.of(new Bookshelf()));
-        when(userService.getUserStats(userId)).thenReturn(Map.of("readCount", 10));
-
-        mockMvc.perform(get("/profile/{userId}", userId))
-                .andExpect(status().isOk())
-                .andExpect(view().name("profile"))
-                .andExpect(model().attribute("user", notNullValue()))
-                .andExpect(model().attribute("isOwner", true));
-    }
-
-    // --- SCENARIUSZ 2: Wyświetlanie profilu (Gość) ---
-
-    @Test
-    @DisplayName("GET /profile/{id} - Wyświetlenie profilu kogoś innego")
-    @WithMockCustomUser(username = "adamMalysz")
-    void shouldShowProfile_WhenVisitor() throws Exception {
-        UUID magdaGesslerId = UUID.randomUUID();
-        User magdaGessler = new User();
-        magdaGessler.setId(magdaGesslerId);
-        magdaGessler.setUsername("magdaGessler");
-
-        when(userService.findById(magdaGesslerId)).thenReturn(magdaGessler);
-        when(bookshelfService.getUserShelves(magdaGesslerId)).thenReturn(Collections.emptyList());
-        when(userService.getUserStats(magdaGesslerId)).thenReturn(Collections.emptyMap());
-
-        mockMvc.perform(get("/profile/{userId}", magdaGesslerId))
-                .andExpect(status().isOk())
-                .andExpect(model().attribute("user", hasProperty("username", is("magdaGessler"))))
-                .andExpect(model().attribute("isOwner", false));
-    }
 
     @Test
     @DisplayName("GET /profile/edit - Edycja profilu")

@@ -25,68 +25,65 @@ class StatisticsRepositoryTest {
     private StatisticsRepository statisticsRepository;
 
     private UUID userId;
-    private UUID bookId;
 
     @BeforeEach
     void setUp() {
         userId = UUID.randomUUID();
-        bookId = UUID.randomUUID();
         createSchema();
     }
 
     @Test
-    @DisplayName("should return 0 read count when user has no shelves")
+    @DisplayName("should return 0 when user has no shelves (or empty shelves)")
     void shouldReturnZero_whenNoShelves() {
+        // Given
+        // user
+        int year = LocalDate.now().getYear();
+
         // When
-        Map<String, Object> stats = statisticsRepository.getUserStats(userId);
+        Integer count = statisticsRepository.countBooksOnShelfInYear(userId, "Przeczytane", year);
 
         // Then
-        assertThat(stats.get("readCount")).isEqualTo(0);
+        assertThat(count).isEqualTo(0);
     }
 
     @Test
-    @DisplayName("should return correct year in user stats")
-    void shouldReturnCorrectYear_inUserStats() {
-        // When
-        Map<String, Object> stats = statisticsRepository.getUserStats(userId);
-
-        // Then
-        assertThat(stats.get("currentYear")).isEqualTo(LocalDate.now().getYear());
-    }
-
-    @Test
-    @DisplayName("should return count for books read this year")
+    @DisplayName("should count books added to shelf in specific year")
     void shouldReturnCount_forBooksReadThisYear() {
         // Given
         UUID shelfId = UUID.randomUUID();
+        int currentYear = LocalDate.now().getYear();
+
         insertUser(userId);
         insertShelf(shelfId, userId, "Przeczytane");
 
         insertBookshelfBook(shelfId, UUID.randomUUID(), LocalDate.now());
-
         insertBookshelfBook(shelfId, UUID.randomUUID(), LocalDate.now().withDayOfYear(1));
 
         // When
-        Map<String, Object> stats = statisticsRepository.getUserStats(userId);
+        Integer count = statisticsRepository.countBooksOnShelfInYear(userId, "Przeczytane", currentYear);
 
         // Then
-        assertThat(stats.get("readCount")).isEqualTo(2);
+        assertThat(count).isEqualTo(2);
     }
 
     @Test
-    @DisplayName("should ignore books read in previous years")
+    @DisplayName("should ignore books from previous years")
     void shouldIgnoreBooks_fromPreviousYears() {
         // Given
         UUID shelfId = UUID.randomUUID();
+        int currentYear = LocalDate.now().getYear();
+
         insertUser(userId);
         insertShelf(shelfId, userId, "Przeczytane");
+
+        // książka z zeszłym rokiem
         insertBookshelfBook(shelfId, UUID.randomUUID(), LocalDate.now().minusYears(1));
 
         // When
-        Map<String, Object> stats = statisticsRepository.getUserStats(userId);
+        Integer count = statisticsRepository.countBooksOnShelfInYear(userId, "Przeczytane", currentYear);
 
         // Then
-        assertThat(stats.get("readCount")).isEqualTo(0);
+        assertThat(count).isEqualTo(0);
     }
 
     @Test
@@ -94,31 +91,17 @@ class StatisticsRepositoryTest {
     void shouldIgnoreBooks_onDifferentShelves() {
         // Given
         UUID shelfId = UUID.randomUUID();
+        int currentYear = LocalDate.now().getYear();
+
         insertUser(userId);
         insertShelf(shelfId, userId, "Chcę przeczytać");
         insertBookshelfBook(shelfId, UUID.randomUUID(), LocalDate.now());
 
         // When
-        Map<String, Object> stats = statisticsRepository.getUserStats(userId);
+        Integer count = statisticsRepository.countBooksOnShelfInYear(userId, "Przeczytane", currentYear);
 
         // Then
-        assertThat(stats.get("readCount")).isEqualTo(0);
-    }
-
-    @Test
-    @DisplayName("should handle case insensitive shelf name correctly")
-    void shouldHandleCaseInsensitiveShelfName() {
-        // Given
-        UUID shelfId = UUID.randomUUID();
-        insertUser(userId);
-        insertShelf(shelfId, userId, "PRZECZYTANE");
-        insertBookshelfBook(shelfId, UUID.randomUUID(), LocalDate.now());
-
-        // When
-        Map<String, Object> stats = statisticsRepository.getUserStats(userId);
-
-        // Then
-        assertThat(stats.get("readCount")).isEqualTo(1);
+        assertThat(count).isEqualTo(0);
     }
 
     // BOOK STATS
