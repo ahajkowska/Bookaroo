@@ -30,5 +30,7 @@ public record ReviewDTO(
         String authorAvatar,
 
         @NotNull(message = "ID książki jest wymagane")
-        UUID bookId
+        UUID bookId,
+
+        String bookTitle
 ) {}

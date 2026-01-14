@@ -2,7 +2,6 @@ package org.example.bookaroo.controller.view;
 
 import org.example.bookaroo.config.SecurityConfig;
 import org.example.bookaroo.dto.BookDTO;
-import org.example.bookaroo.entity.Book;
 import org.example.bookaroo.service.BookService;
 import org.example.bookaroo.service.ReviewService;
 import org.example.bookaroo.service.UserService;
@@ -16,10 +15,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Collections;
-import java.util.Optional;
 import java.util.UUID;
 
-import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;

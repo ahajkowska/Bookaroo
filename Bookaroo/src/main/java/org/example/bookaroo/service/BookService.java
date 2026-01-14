@@ -1,5 +1,6 @@
 package org.example.bookaroo.service;
 
+import jakarta.validation.Valid;
 import org.example.bookaroo.dto.BookDTO;
 import org.example.bookaroo.dto.BookStatisticsDTO;
 import org.example.bookaroo.dto.mapper.BookMapper;
@@ -11,10 +12,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.*;
 
 @Service
+@Validated
 public class BookService {
 
     private final BookRepository bookRepository;
@@ -41,7 +44,7 @@ public class BookService {
     }
 
     @Transactional
-    public BookDTO createBook(BookDTO bookDto) {
+    public BookDTO createBook(@Valid BookDTO bookDto) {
         Author author = authorRepository.findById(bookDto.authorId())
                 .orElseThrow(() -> new ResourceNotFoundException("Author", "id", bookDto.authorId()));
 
@@ -54,7 +57,7 @@ public class BookService {
     }
 
     @Transactional
-    public BookDTO updateBook(UUID id, BookDTO bookDto) {
+    public BookDTO updateBook(UUID id, @Valid BookDTO bookDto) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book", "id", id));
 

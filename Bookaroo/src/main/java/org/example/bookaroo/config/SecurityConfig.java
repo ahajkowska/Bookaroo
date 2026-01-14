@@ -31,7 +31,7 @@ public class SecurityConfig {
 
                         //widoki
                         .requestMatchers("/", "/index", "/register", "/login").permitAll()
-                        .requestMatchers("/book/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/book/**").permitAll()
 
                         // api
                         .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()

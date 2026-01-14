@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.example.bookaroo.dto.BookDTO;
 import org.example.bookaroo.dto.mapper.BookMapper;
 import org.example.bookaroo.entity.Book;
@@ -113,10 +114,7 @@ public class BookRestController {
             description = "Forbidden - Brak uprawnień adminia",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class))
     )
-    public ResponseEntity<BookDTO> createBook(@RequestBody BookDTO bookDto) {
-        if (bookDto.title() == null || bookDto.authorId() == null) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<BookDTO> createBook(@Valid @RequestBody BookDTO bookDto) {
 
         BookDTO savedBookDto = bookService.createBook(bookDto);
 
@@ -142,7 +140,7 @@ public class BookRestController {
             description = "Not Found - Nie znaleziono książki",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class))
     )
-    public ResponseEntity<BookDTO> updateBook(@PathVariable UUID id, @RequestBody BookDTO bookDto) {
+    public ResponseEntity<BookDTO> updateBook(@PathVariable UUID id, @Valid @RequestBody BookDTO bookDto) {
         BookDTO updatedBook = bookService.updateBook(id, bookDto);
 
         return ResponseEntity.ok(updatedBook);
@@ -257,7 +255,7 @@ public class BookRestController {
     @PostMapping("/jdbc")
     @Operation(summary = "Dodaj książkę przez JDBC", description = "Użycie JdbcTemplate INSERT")
     @ApiResponse(responseCode = "201", description = "Created", content = @Content(schema = @Schema(hidden = true)))
-    public ResponseEntity<Void> createBookViaJdbc(@RequestBody BookDTO bookDto) {
+    public ResponseEntity<Void> createBookViaJdbc(@Valid @RequestBody BookDTO bookDto) {
         Book book = BookMapper.toEntity(bookDto);
 
         if (book.getId() == null) {

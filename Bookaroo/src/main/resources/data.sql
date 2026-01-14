@@ -93,6 +93,25 @@ INSERT INTO book_genres (book_id, genre_id) VALUES
                                                 ('00000000-0000-0000-0000-000000000003', '660e8400-e29b-41d4-a716-446655440001'),
                                                 ('00000000-0000-0000-0000-000000000003', '660e8400-e29b-41d4-a716-446655440004');
 
+-- Półki (Bookshelf)
+INSERT INTO bookshelf (id, name, is_default, user_id)
+VALUES
+    -- Półki dla Jana Kowalskiego
+    ('770e8400-e29b-41d4-a716-446655440000', 'Chcę przeczytać', true, '550e8400-e29b-41d4-a716-446655440003'),
+    ('770e8400-e29b-41d4-a716-446655440001', 'W trakcie czytania', true, '550e8400-e29b-41d4-a716-446655440003'),
+    ('770e8400-e29b-41d4-a716-446655440002', 'Przeczytane', true, '550e8400-e29b-41d4-a716-446655440003'),
+
+    -- Półki dla Roberta Kubicy
+    ('770e8400-e29b-41d4-a716-446655440004', 'Chcę przeczytać', true, '550e8400-e29b-41d4-a716-446655440002'),
+    ('770e8400-e29b-41d4-a716-446655440005', 'W trakcie czytania', true, '550e8400-e29b-41d4-a716-446655440002'),
+    ('770e8400-e29b-41d4-a716-446655440006', 'Przeczytane', true, '550e8400-e29b-41d4-a716-446655440002');
+
+-- Powiązanie Książek z Półkami (Bookshelf_Books)
+INSERT INTO bookshelf_books (bookshelf_id, book_id, added_at)
+VALUES
+    ('770e8400-e29b-41d4-a716-446655440002', '33333333-3333-3333-3333-333333333333', CURRENT_TIMESTAMP),
+    ('770e8400-e29b-41d4-a716-446655440006', '44444444-4444-4444-4444-444444444444', CURRENT_TIMESTAMP);
+
 -- Recenzje
 INSERT INTO reviews (id, rating, content, created_at, book_id, user_id) VALUES
                                                                             -- dla "Władcy Pierścieni"

@@ -17,7 +17,8 @@ public class ReviewMapper {
                 review.getUser().getId(),
                 review.getUser().getUsername(),
                 review.getUser().getAvatar(),
-                review.getBook().getId()
+                review.getBook().getId(),
+                review.getBook().getTitle()
         );
     }
 

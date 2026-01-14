@@ -1,11 +1,13 @@
 package org.example.bookaroo.controller.view;
 
+import jakarta.validation.Valid;
 import org.example.bookaroo.dto.BookDTO;
 import org.example.bookaroo.entity.Author;
 import org.example.bookaroo.entity.Book;
 import org.example.bookaroo.service.BookService;
 import org.example.bookaroo.service.ReviewService;
 import org.example.bookaroo.service.UserService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -47,8 +49,9 @@ public class AdminController {
         return "admin/book-form";
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/book/save")
-    public String saveBook(@ModelAttribute BookDTO bookDto) {
+    public String saveBook(@Valid @ModelAttribute BookDTO bookDto) {
         if (bookDto.id() == null) {
             bookService.createBook(bookDto);
         } else {
@@ -67,6 +70,7 @@ public class AdminController {
         return "admin/book-form";
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/book/delete/{id}")
     public String deleteBook(@PathVariable UUID id) {
         bookService.deleteById(id);
@@ -80,12 +84,14 @@ public class AdminController {
         return "admin/author-form";
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/author/save")
     public String saveAuthor(@ModelAttribute Author author) {
         bookService.saveAuthor(author);
         return "redirect:/admin/dashboard";
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/author/delete/{id}")
     public String deleteAuthor(@PathVariable UUID id) {
         try {
@@ -104,6 +110,7 @@ public class AdminController {
     }
 
     // moderacja użytkowników
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/user/toggle-lock/{id}")
     public String toggleUserLock(@PathVariable UUID id, @AuthenticationPrincipal UserDetails currentUser) {
         try {
@@ -117,6 +124,7 @@ public class AdminController {
         return "redirect:/admin/dashboard";
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/review/delete/{id}")
     public String deleteReview(@PathVariable UUID id) {
         reviewService.deleteReview(id);

@@ -382,10 +382,10 @@
                 </thead>
                 <tbody>
                 <tr th:each="review : ${reviews}">
-                    <td th:text="${review.book.title}" class="fw-bold">Tytuł</td>
+                    <td th:text="${review.bookTitle}" class="fw-bold">Tytuł</td>
 
                     <td>
-                        <span th:text="${review.user.username}">User</span>
+                        <span th:text="${review.username}">User</span>
                     </td>
 
                     <td>

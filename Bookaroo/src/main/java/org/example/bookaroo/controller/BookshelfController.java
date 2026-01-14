@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.example.bookaroo.dto.BookshelfDTO;
 import org.example.bookaroo.dto.CreateShelfDTO;
 import org.example.bookaroo.dto.mapper.BookshelfMapper;
@@ -59,7 +60,7 @@ public class BookshelfController {
                     )
             )
     )
-    public ResponseEntity<Void> createShelf(@PathVariable UUID userId, @RequestBody CreateShelfDTO request) {
+    public ResponseEntity<Void> createShelf(@PathVariable UUID userId, @Valid @RequestBody CreateShelfDTO request) {
         bookshelfService.createCustomShelf(userId, request.name());
         return ResponseEntity.ok().build();
     }
