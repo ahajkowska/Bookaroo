@@ -10,8 +10,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.example.bookaroo.dto.BookshelfDTO;
 import org.example.bookaroo.dto.CreateShelfDTO;
-import org.example.bookaroo.dto.mapper.BookshelfMapper;
-import org.example.bookaroo.entity.Bookshelf;
 import org.example.bookaroo.exception.ErrorResponse;
 import org.example.bookaroo.service.BookshelfService;
 import org.springframework.http.ResponseEntity;

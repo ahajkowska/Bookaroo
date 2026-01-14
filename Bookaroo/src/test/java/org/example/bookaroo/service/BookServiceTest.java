@@ -62,6 +62,8 @@ class BookServiceTest {
 
         // Then
         assertThat(result.title()).isEqualTo("Title");
+
+        verify(bookRepository).save(any(Book.class));
     }
 
     @Test
@@ -224,6 +226,8 @@ class BookServiceTest {
 
         // Then
         assertThat(result).hasSize(2);
+
+        verify(bookRepository).findAll();
     }
 
     @Test
@@ -320,6 +324,8 @@ class BookServiceTest {
 
         // Then
         assertThat(result).hasSize(1);
+
+        verify(bookJdbcDao).findTopRatedBooks(limit);
     }
 
     @Test

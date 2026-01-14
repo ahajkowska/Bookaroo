@@ -1,5 +1,6 @@
 package org.example.bookaroo.service;
 
+import jakarta.validation.Valid;
 import org.example.bookaroo.dto.CreateUserDTO;
 import org.example.bookaroo.dto. UpdateUserDTO;
 import org. example.bookaroo.dto.UserDTO;
@@ -14,13 +15,14 @@ import org.springframework.data.domain. Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
 import java. util.List;
-import java.util.Map;
 import java. util.UUID;
 
 @Service
+@Validated
 public class UserService {
 
     private final UserRepository userRepository;
@@ -58,7 +60,7 @@ public class UserService {
 
     // CREATE USER
     @Transactional
-    public UserDTO createUser(CreateUserDTO createUserDTO) {
+    public UserDTO createUser(@Valid CreateUserDTO createUserDTO) {
         // czy email już istnieje
         if (userRepository.existsByEmail(createUserDTO.getEmail())) {
             throw new UserAlreadyExistsException("Email " + createUserDTO.getEmail() + " jest już zajęty");
@@ -83,7 +85,7 @@ public class UserService {
 
     // UPDATE USER
     @Transactional
-    public UserDTO updateUser(UUID id, UpdateUserDTO updateUserDTO) {
+    public UserDTO updateUser(UUID id, @Valid UpdateUserDTO updateUserDTO) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
 

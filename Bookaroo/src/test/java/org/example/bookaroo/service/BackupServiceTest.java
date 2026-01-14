@@ -122,9 +122,7 @@ class BackupServiceTest {
         byte[] result = backupService.exportUserReviewsToPdf("janusz");
 
         // Then
-        assertNotNull(result);
-        assertTrue(result.length > 0); // Sprawdzamy czy wygenerowano cokolwiek
-        // Nie parsujemy PDF w teście jednostkowym, sprawdzamy tylko czy proces przeszedł bez błędów
+        assertTrue(result.length > 0); // czy wygenerowano cokolwiek
     }
 
     @Test
@@ -169,11 +167,11 @@ class BackupServiceTest {
         // Given
         MockMultipartFile file = new MockMultipartFile("file", "test.json", "application/json", "{}".getBytes());
 
-        // Istniejąca półka usera
+        // istniejąca półka usera
         Bookshelf existingShelf = new Bookshelf();
         existingShelf.setName("Do przeczytania");
         existingShelf.setUser(user);
-        existingShelf.setItems(new ArrayList<>()); // Pusta półka
+        existingShelf.setItems(new ArrayList<>()); // pusta półka
         user.setBookshelves(List.of(existingShelf));
 
         // DTO z tą samą półką i jedną książką
@@ -190,13 +188,12 @@ class BackupServiceTest {
         backupService.importUserData("janusz", file);
 
         // Then
-        // Sprawdzamy czy książka została dodana do istniejącej półki
         assertEquals(1, existingShelf.getBooks().size());
         assertEquals("Wiedźmin", existingShelf.getBooks().get(0).getTitle());
         verify(bookshelfRepository, times(1)).save(existingShelf);
     }
 
-    // Sprzątanie po testach (usuwanie plików tymczasowych stworzonych przez import)
+    // usuwanie plików tymczasowych stworzonych przez import
     @AfterEach
     void cleanUp() {
         File dir = new File("backups/");

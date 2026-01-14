@@ -79,14 +79,17 @@ public class BookService {
         bookRepository.deleteById(id);
     }
 
+    @Transactional(readOnly = true)
     public Page<Book> findAll(Pageable pageable) {
         return bookRepository.findAll(pageable);
     }
 
+    @Transactional(readOnly = true)
     public Page<Book> findByGenresId(UUID genreId, Pageable pageable) {
         return bookRepository.findByGenresId(genreId, pageable);
     }
 
+    @Transactional(readOnly = true)
     public Optional<Book> findById(UUID id) {
         return bookRepository.findById(id);
     }
@@ -99,10 +102,12 @@ public class BookService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public Page<Book> searchBooks(String query, Pageable pageable) {
         return bookRepository.searchBooks(query, pageable);
     }
 
+    @Transactional(readOnly = true)
     public Page<Book> getBooksByAuthorId(UUID authorId, Pageable pageable) {
         Author author = authorRepository.findById(authorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Author", "id", authorId));

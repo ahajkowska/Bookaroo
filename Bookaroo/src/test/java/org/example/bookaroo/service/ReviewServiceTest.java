@@ -47,7 +47,7 @@ class ReviewServiceTest {
         UUID userId = UUID.randomUUID();
         UUID bookId = UUID.randomUUID();
 
-        ReviewDTO dto = new ReviewDTO(null, 5, "Great!", null, null, null, null, bookId);
+        ReviewDTO dto = new ReviewDTO(null, 5, "Great!", null, null, null, null, bookId, null);
 
         User user = new User();
         user.setId(userId);
@@ -76,7 +76,7 @@ class ReviewServiceTest {
         String content = "Amazing content";
         int rating = 5;
 
-        ReviewDTO dto = new ReviewDTO(null, rating, content, null, null, null, null, bookId);
+        ReviewDTO dto = new ReviewDTO(null, rating, content, null, null, null, null, bookId, null);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(new Book()));
@@ -100,7 +100,7 @@ class ReviewServiceTest {
         // Given
         UUID userId = UUID.randomUUID();
         UUID bookId = UUID.randomUUID();
-        ReviewDTO dto = new ReviewDTO(null, 5, "New", null, null, null, null, bookId);
+        ReviewDTO dto = new ReviewDTO(null, 5, "New", null, null, null, null, bookId, null);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(new Book()));
@@ -123,7 +123,7 @@ class ReviewServiceTest {
         // Given
         UUID userId = UUID.randomUUID();
         UUID bookId = UUID.randomUUID();
-        ReviewDTO dto = new ReviewDTO(null, 5, "New", null, null, null, null, bookId);
+        ReviewDTO dto = new ReviewDTO(null, 5, "New", null, null, null, null, bookId, null);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(new Book()));
@@ -141,7 +141,7 @@ class ReviewServiceTest {
     @DisplayName("should throw exception when user not found")
     void shouldThrowException_whenUserNotFound() {
         UUID userId = UUID.randomUUID();
-        ReviewDTO dto = new ReviewDTO(null, 5, "C", null, null, null, null, UUID.randomUUID());
+        ReviewDTO dto = new ReviewDTO(null, 5, "C", null, null, null, null, UUID.randomUUID(), null);
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
@@ -155,7 +155,7 @@ class ReviewServiceTest {
         // Given
         UUID userId = UUID.randomUUID();
         UUID bookId = UUID.randomUUID();
-        ReviewDTO dto = new ReviewDTO(null, 5, "content", null, null, null, null, bookId);
+        ReviewDTO dto = new ReviewDTO(null, 5, "content", null, null, null, null, bookId, null);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
         when(bookRepository.findById(bookId)).thenReturn(Optional.empty());

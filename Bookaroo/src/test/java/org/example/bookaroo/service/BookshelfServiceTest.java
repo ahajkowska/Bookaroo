@@ -51,6 +51,8 @@ class BookshelfServiceTest {
 
         // Then
         assertThat(result).hasSize(3);
+
+        verify(bookshelfRepository).saveAll(any());
     }
 
     @Test
@@ -131,10 +133,10 @@ class BookshelfServiceTest {
         // When
         bookshelfService.createCustomShelf(userId, "Custom");
 
-        // Then
-        ArgumentCaptor<Bookshelf> captor = ArgumentCaptor.forClass(Bookshelf.class);
-        verify(bookshelfRepository).save(captor.capture());
-        assertThat(captor.getValue().getIsDefault()).isFalse();
+        // Then // czy wywołano save z obiektem, którego getIsDefault() zwraca false
+        verify(bookshelfRepository).save(argThat(shelf ->
+                shelf.getIsDefault() == false && shelf.getName().equals("Custom")
+        ));
     }
 
     // GET USER SHELVES BY USERNAME

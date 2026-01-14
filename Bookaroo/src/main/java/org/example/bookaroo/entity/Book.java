@@ -40,7 +40,7 @@ public class Book {
     @JoinColumn(name="author_id", nullable=false)
     private Author author;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "book_genres",
             joinColumns = @JoinColumn(name = "book_id"),
